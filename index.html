@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1020">
+  <meta name="description" content="VOA Newsroom: 500 Words ESL Studio — a browser-native newsroom vocabulary trainer with spaced repetition, live VOA headlines, speech practice, and five learning activities.">
+  <meta property="og:title" content="VOA Newsroom — 500 Words ESL Studio">
+  <meta property="og:description" content="A newsroom-themed ESL vocabulary studio with 500 words, SRS, live VOA headlines, speech practice, and five learning desks.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="screenshot.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>VOA Newsroom — 500 Words ESL Studio</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to the newsroom</a>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <span>VOA</span>
+        </div>
+        <div class="brand-copy">
+          <p class="brand-kicker">Voice of America · Learning English</p>
+          <h1>Newsroom <span>500</span></h1>
+          <p class="brand-sub">Words ESL Studio</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="btn btn-ghost due-trigger" id="dueBtn" type="button" title="Open words that are due for review">
+          <span aria-hidden="true">🔔</span>
+          <span>Due Today</span>
+          <span class="count-pill" id="dueCount">0</span>
+        </button>
+        <button class="btn btn-ghost" id="saveBtn" type="button" title="Download your progress as a text file" aria-label="Save progress file">
+          <span aria-hidden="true">💾</span>
+          <span class="btn-label btn-label-full">Save Progress File</span>
+          <span class="btn-label btn-label-short">Save</span>
+        </button>
+        <button class="btn btn-ghost" id="loadBtn" type="button" title="Restore progress from a saved text file" aria-label="Load progress file">
+          <span aria-hidden="true">📂</span>
+          <span class="btn-label btn-label-full">Load Progress File</span>
+          <span class="btn-label btn-label-short">Load</span>
+        </button>
+        <input id="loadInput" type="file" accept=".txt,.json,text/plain,application/json" hidden>
+        <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch color theme" title="Switch color theme">
+          <span aria-hidden="true">◐</span>
+        </button>
+      </div>
+    </header>
+
+    <section class="hud" aria-label="Reporter status">
+      <div class="hud-card hud-rank">
+        <div class="hud-icon" id="rankIcon" aria-hidden="true">🎙️</div>
+        <div>
+          <p class="hud-label">Reporter rank</p>
+          <p class="hud-value" id="rankName">Intern</p>
+          <p class="hud-note" id="rankNext">25 mastered words to Field Journalist</p>
+        </div>
+      </div>
+
+      <div class="hud-card hud-progress">
+        <div class="progress-head">
+          <div>
+            <p class="hud-label">Mastery progress</p>
+            <p class="hud-value"><span id="progressMastered">0</span> <span class="muted">/ 500 words</span></p>
+          </div>
+          <p class="progress-percent" id="progressPercent">0%</p>
+        </div>
+        <div class="progress-track" role="progressbar" aria-label="Words mastered" aria-valuemin="0" aria-valuemax="500" aria-valuenow="0" id="progressBar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <p class="hud-note" id="progressNote">Every review moves you closer to the anchor desk.</p>
+      </div>
+
+      <div class="hud-card hud-streak">
+        <div class="hud-icon flame" aria-hidden="true">🔥</div>
+        <div>
+          <p class="hud-label">Daily streak</p>
+          <p class="hud-value"><span id="streakCount">0</span> <span class="muted" id="streakUnit">days</span></p>
+          <p class="hud-note">Best: <span id="streakBest">0</span> · Today: <span id="reviewedToday">0</span> <span id="reviewedUnit">words</span></p>
+        </div>
+      </div>
+
+      <div class="hud-card hud-accuracy">
+        <div class="hud-icon" aria-hidden="true">🎯</div>
+        <div>
+          <p class="hud-label">Newsroom accuracy</p>
+          <p class="hud-value" id="accuracyRate">—</p>
+          <p class="hud-note"><span id="attemptsTotal">0</span> <span id="attemptsUnit">attempts</span> filed</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="live-ticker" aria-label="Live VOA headlines">
+      <div class="ticker-label">
+        <span class="live-dot" id="feedDot" aria-hidden="true"></span>
+        <span id="feedStatusText">Live VOA feed</span>
+      </div>
+      <div class="ticker-window">
+        <div class="ticker-track" id="tickerTrack">
+          <span class="ticker-placeholder">Connecting to VOA Learning English headlines…</span>
+        </div>
+      </div>
+      <button class="ticker-refresh" id="feedRefreshBtn" type="button" title="Refresh live VOA headlines" aria-label="Refresh live VOA headlines">↻</button>
+    </section>
+
+    <main id="main" class="newsroom">
+      <aside class="rail" aria-label="Newsroom navigation">
+        <div class="rail-section">
+          <p class="rail-heading">Assignment desk</p>
+          <button class="rail-link is-active" type="button" data-view="all">
+            <span aria-hidden="true">🗂️</span> All 500 words
+            <span class="rail-count" id="railAllCount">500</span>
+          </button>
+          <button class="rail-link" type="button" data-view="due">
+            <span aria-hidden="true">🔔</span> Due today
+            <span class="rail-count accent" id="railDueCount">0</span>
+          </button>
+          <button class="rail-link" type="button" data-view="practicing">
+            <span aria-hidden="true">🟡</span> Practicing
+            <span class="rail-count" id="railPracticingCount">0</span>
+          </button>
+          <button class="rail-link" type="button" data-view="mastered">
+            <span aria-hidden="true">🟢</span> Mastered
+            <span class="rail-count" id="railMasteredCount">0</span>
+          </button>
+        </div>
+
+        <div class="rail-section">
+          <p class="rail-heading">Beats</p>
+          <button class="rail-link rail-beat" type="button" data-category="WP">
+            <span class="beat-dot beat-wp" aria-hidden="true"></span> World Politics
+            <span class="rail-count" id="count-WP">125</span>
+          </button>
+          <button class="rail-link rail-beat" type="button" data-category="BE">
+            <span class="beat-dot beat-be" aria-hidden="true"></span> Business &amp; Economy
+            <span class="rail-count" id="count-BE">125</span>
+          </button>
+          <button class="rail-link rail-beat" type="button" data-category="ST">
+            <span class="beat-dot beat-st" aria-hidden="true"></span> Science &amp; Tech
+            <span class="rail-count" id="count-ST">125</span>
+          </button>
+          <button class="rail-link rail-beat" type="button" data-category="CU">
+            <span class="beat-dot beat-cu" aria-hidden="true"></span> Culture
+            <span class="rail-count" id="count-CU">125</span>
+          </button>
+        </div>
+
+        <div class="rail-tip">
+          <p class="rail-heading">Studio note</p>
+          <p>Pick a word, then rotate through all five desks. The SRS clock only moves when you file a correct story.</p>
+        </div>
+
+        <div class="rail-footer">
+          <span class="status-dot"></span> Offline-first · no account
+        </div>
+      </aside>
+
+      <section class="content" aria-labelledby="viewTitle">
+        <div class="content-head">
+          <div>
+            <p class="eyebrow" id="viewEyebrow">ASSIGNMENT DESK</p>
+            <h2 id="viewTitle">All 500 Words</h2>
+            <p class="view-subtitle" id="viewSubtitle">Choose a beat, open a word card, and start filing reports.</p>
+          </div>
+          <div class="content-tools">
+            <label class="search-box" for="searchInput">
+              <span aria-hidden="true">⌕</span>
+              <input id="searchInput" type="search" placeholder="Search words or meanings…" autocomplete="off" spellcheck="false">
+            </label>
+            <label class="select-wrap" for="sortSelect">
+              <span class="sr-only">Sort words</span>
+              <select id="sortSelect">
+                <option value="az">A → Z</option>
+                <option value="za">Z → A</option>
+                <option value="due">Due first</option>
+                <option value="new">Least reviewed</option>
+                <option value="reviewed">Most reviewed</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="category-tabs" role="tablist" aria-label="News beats">
+          <button class="cat-tab is-active" type="button" role="tab" aria-selected="true" data-cat="ALL">All beats</button>
+          <button class="cat-tab" type="button" role="tab" aria-selected="false" data-cat="WP">World Politics</button>
+          <button class="cat-tab" type="button" role="tab" aria-selected="false" data-cat="BE">Business &amp; Economy</button>
+          <button class="cat-tab" type="button" role="tab" aria-selected="false" data-cat="ST">Science &amp; Tech</button>
+          <button class="cat-tab" type="button" role="tab" aria-selected="false" data-cat="CU">Culture</button>
+        </div>
+
+        <div class="results-line">
+          <p id="resultCount">Showing 500 words</p>
+          <p class="results-hint">Click a card to open the studio</p>
+        </div>
+
+        <div class="word-grid" id="wordGrid" aria-live="polite"></div>
+
+        <div class="empty-state" id="emptyState" hidden>
+          <div class="empty-icon" aria-hidden="true">🗞️</div>
+          <h3>No stories on this desk</h3>
+          <p>Try another beat, clear the search, or switch back to all 500 words.</p>
+          <button class="btn btn-primary" type="button" id="resetFiltersBtn">Reset filters</button>
+        </div>
+
+        <div class="load-more-wrap" id="loadMoreWrap" hidden>
+          <button class="btn btn-outline" type="button" id="loadMoreBtn">Load more words</button>
+        </div>
+      </section>
+
+      <aside class="studio" id="studioPanel" aria-label="Word studio" aria-live="polite">
+        <div class="studio-empty" id="studioEmpty">
+          <div class="studio-empty-mark" aria-hidden="true">📰</div>
+          <p class="eyebrow">THE WORD STUDIO</p>
+          <h2>Your next story starts with one word.</h2>
+          <p>Select any card to open five newsroom activities: read-aloud, listening, copy editing, speed match, and syllable lab.</p>
+          <div class="studio-empty-chips">
+            <span>🎤 Speak</span><span>🎧 Listen</span><span>✏️ Edit</span><span>⚡ Match</span><span>🔤 Syllables</span>
+          </div>
+        </div>
+
+        <div class="studio-body" id="studioBody" hidden>
+          <div class="studio-head">
+            <div class="studio-title">
+              <span class="status-pill" id="studioStatus">🔴 New</span>
+              <h2 id="studioWord">sanction</h2>
+              <p class="studio-ipa" id="studioIPA">/ˈsæŋkʃən/</p>
+            </div>
+            <button class="icon-btn studio-close" id="closeStudio" type="button" aria-label="Close word studio">×</button>
+          </div>
+
+          <p class="studio-definition" id="studioDefinition"></p>
+          <p class="studio-category" id="studioCategory"></p>
+
+          <div class="srs-strip">
+            <div><span class="srs-label">Reviews</span><strong id="srsReviewCount">0</strong></div>
+            <div><span class="srs-label">Level</span><strong id="srsLevel">New</strong></div>
+            <div><span class="srs-label">Next due</span><strong id="srsDue">Now</strong></div>
+          </div>
+
+          <div class="activity-tabs" role="tablist" aria-label="Word activities">
+            <button class="activity-tab is-active" type="button" role="tab" aria-selected="true" data-activity="read" title="Anchor Read-Aloud">
+              <span aria-hidden="true">🎤</span><span>Read</span>
+            </button>
+            <button class="activity-tab" type="button" role="tab" aria-selected="false" data-activity="listen" title="Newsroom Listening Desk">
+              <span aria-hidden="true">🎧</span><span>Listen</span>
+            </button>
+            <button class="activity-tab" type="button" role="tab" aria-selected="false" data-activity="editor" title="Copy Editor Challenge">
+              <span aria-hidden="true">✏️</span><span>Edit</span>
+            </button>
+            <button class="activity-tab" type="button" role="tab" aria-selected="false" data-activity="match" title="Speed Match Ticker">
+              <span aria-hidden="true">⚡</span><span>Match</span>
+            </button>
+            <button class="activity-tab" type="button" role="tab" aria-selected="false" data-activity="syllable" title="Syllable & Phonetic Explorer">
+              <span aria-hidden="true">🔤</span><span>Syllables</span>
+            </button>
+          </div>
+
+          <div class="activity-panels">
+            <section class="activity-panel is-active" id="panel-read" role="tabpanel" aria-label="Anchor Read-Aloud">
+              <div class="panel-kicker"><span>DESK 01</span> Anchor Read-Aloud</div>
+              <div class="live-card" id="readLiveCard">
+                <div class="live-card-top">
+                  <span class="live-badge" id="readBadge">📰 Newsroom template</span>
+                  <span class="live-source" id="readSource">VOA Newsroom archive</span>
+                </div>
+                <h3 class="headline" id="readHeadline"></h3>
+                <a class="live-link" id="readLink" href="#" target="_blank" rel="noopener noreferrer" hidden>Read the full story on VOA →</a>
+              </div>
+              <p class="panel-tip">Read the headline on air. The microphone listens for the target word and checks your delivery.</p>
+              <div class="button-row">
+                <button class="btn btn-primary" id="readRecordBtn" type="button">🎤 Report Live</button>
+                <button class="btn btn-danger" id="readStopBtn" type="button" hidden>■ Stop</button>
+                <button class="btn btn-outline" id="readPlayBtn" type="button">🔊 Hear headline</button>
+              </div>
+              <p class="status-line" id="readStatus">Microphone ready when you are.</p>
+              <div class="transcript-box" id="readTranscript" hidden>
+                <span class="transcript-label">Newsroom heard</span>
+                <p id="readTranscriptText"></p>
+              </div>
+              <div class="accuracy-meter" id="readAccuracy" hidden>
+                <div class="accuracy-head"><span>Pronunciation match</span><strong id="readAccuracyText">0%</strong></div>
+                <div class="accuracy-track"><div class="accuracy-fill" id="readAccuracyFill"></div></div>
+              </div>
+              <button class="link-btn" id="readManualBtn" type="button" hidden>Microphone unavailable? Mark this report as practiced</button>
+            </section>
+
+            <section class="activity-panel" id="panel-listen" role="tabpanel" aria-label="Newsroom Listening Desk" hidden>
+              <div class="panel-kicker"><span>DESK 02</span> Newsroom Listening Desk</div>
+              <p class="panel-tip">The copy is hidden. Listen to the anchor, then type the word you hear.</p>
+              <div class="speed-row" role="group" aria-label="Playback speed">
+                <button class="speed-btn" type="button" data-rate="0.5">0.5× Slow</button>
+                <button class="speed-btn is-active" type="button" data-rate="0.8">0.8× ESL</button>
+                <button class="speed-btn" type="button" data-rate="1">1.0× Normal</button>
+              </div>
+              <div class="listen-console">
+                <button class="listen-play" id="listenPlayBtn" type="button">
+                  <span class="listen-icon" aria-hidden="true">▶</span>
+                  <span>Play the word</span>
+                </button>
+                <p class="listen-status" id="listenStatus">Choose a speed, then press play. You can replay as often as you need.</p>
+              </div>
+              <label class="field-label" for="listenInput">Type the word you hear</label>
+              <div class="input-row">
+                <input class="text-input" id="listenInput" type="text" placeholder="Spell the word…" autocomplete="off" autocapitalize="off" spellcheck="false">
+                <button class="btn btn-primary" id="listenCheckBtn" type="button">Check</button>
+              </div>
+              <div class="feedback" id="listenFeedback" hidden></div>
+              <button class="link-btn" id="listenRevealBtn" type="button">Reveal the answer</button>
+            </section>
+
+            <section class="activity-panel" id="panel-editor" role="tabpanel" aria-label="Copy Editor Challenge" hidden>
+              <div class="panel-kicker"><span>DESK 03</span> Copy Editor Challenge</div>
+              <p class="panel-tip">A word is missing from the headline. Choose the right VOA vocabulary word or type it in.</p>
+              <blockquote class="editor-headline" id="editorHeadline"></blockquote>
+              <div class="option-grid" id="editorOptions" role="group" aria-label="Choose the missing word"></div>
+              <label class="field-label" for="editorInput">Or type the missing word</label>
+              <div class="input-row">
+                <input class="text-input" id="editorInput" type="text" placeholder="Your headline word…" autocomplete="off" autocapitalize="off" spellcheck="false">
+                <button class="btn btn-primary" id="editorCheckBtn" type="button">File the story</button>
+              </div>
+              <div class="feedback" id="editorFeedback" hidden></div>
+            </section>
+
+            <section class="activity-panel" id="panel-match" role="tabpanel" aria-label="Speed Match Ticker" hidden>
+              <div class="panel-kicker"><span>DESK 04</span> Speed Match Ticker</div>
+              <div class="match-top">
+                <div class="match-clock">
+                  <span class="clock-label">Ticker</span>
+                  <strong id="matchTimer">60</strong><span>s</span>
+                </div>
+                <div class="match-score">
+                  <span class="clock-label">Matches</span>
+                  <strong id="matchScore">0</strong>
+                </div>
+                <button class="btn btn-primary btn-small" id="matchStartBtn" type="button">Start 60s ticker</button>
+              </div>
+              <p class="panel-tip" id="matchStatus">Match each VOA word to its definition before the clock runs out. Five pairs per board.</p>
+              <div class="match-board" id="matchBoard">
+                <div class="match-column">
+                  <p class="match-column-label">Words</p>
+                  <div class="match-words" id="matchWords"></div>
+                </div>
+                <div class="match-column">
+                  <p class="match-column-label">Definitions</p>
+                  <div class="match-defs" id="matchDefs"></div>
+                </div>
+              </div>
+              <div class="feedback" id="matchFeedback" hidden></div>
+            </section>
+
+            <section class="activity-panel" id="panel-syllable" role="tabpanel" aria-label="Syllable and Phonetic Explorer" hidden>
+              <div class="panel-kicker"><span>DESK 05</span> Syllable &amp; Phonetic Explorer</div>
+              <p class="panel-tip">Tap each chunk to hear it. The gold chunk carries the primary stress.</p>
+              <div class="syllable-stage">
+                <div class="syllable-chunks" id="syllableChunks"></div>
+                <p class="syllable-ipa" id="syllableIPA"></p>
+                <p class="syllable-stress" id="syllableStress"></p>
+              </div>
+              <div class="button-row">
+                <button class="btn btn-primary" id="syllablePlayAll" type="button">▶ Play all syllables</button>
+                <button class="btn btn-outline" id="syllableSlow" type="button">🐢 Slow stress coach</button>
+              </div>
+              <div class="feedback" id="syllableFeedback" hidden></div>
+            </section>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <p class="footer-brand">VOA Newsroom · 500 Words ESL Studio</p>
+        <p class="footer-copy">A client-side learning studio for ESL reporters. Progress stays in your browser; export a text file to move it anywhere.</p>
+      </div>
+      <div class="footer-meta">
+        <p>Built with <a href="https://opencode.ai" target="_blank" rel="noopener noreferrer">OpenCode</a> and <strong>DeepSeek V4.1 Flash</strong>.</p>
+        <p><a href="https://github.com/somphol/voa-newsroom-esl-studio" target="_blank" rel="noopener noreferrer">Source on GitHub</a> · <button class="link-btn footer-reset" id="resetAllBtn" type="button">Reset all progress</button></p>
+      </div>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <noscript>
+    <div class="noscript">This studio needs JavaScript for speech, SRS timestamps, and saved progress.</div>
+  </noscript>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

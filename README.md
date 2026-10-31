@@ -1,0 +1,128 @@
+# VOA Newsroom: 500 Words ESL Studio
+
+A production-ready, browser-native vocabulary studio for ESL learners, built around a digital newsroom. It runs entirely from a read-only static host such as GitHub Pages — no backend, no database, no build step, and no account.
+
+![VOA Newsroom screenshot](screenshot.png)
+
+**Live demo:** <https://somphol.github.io/voa-newsroom-esl-studio/>
+
+## What it does
+
+- **500 curated VOA-style vocabulary words** across four beats:
+  - World Politics — 125 words
+  - Business & Economy — 125 words
+  - Science & Tech — 125 words
+  - Culture — 125 words
+- **Five newsroom learning desks** for every word:
+  1. **Anchor Read-Aloud** — read a live or template headline; native speech recognition scores the target word.
+  2. **Newsroom Listening Desk** — native text-to-speech at 0.5×, 0.8×, or 1.0×; type the word you hear.
+  3. **Copy Editor Challenge** — choose or type the missing word in a headline.
+  4. **Speed Match Ticker** — 60 seconds, five words and five definitions per board.
+  5. **Syllable & Phonetic Explorer** — tap syllable chunks, hear each one, and practise the stress pattern.
+- **Spaced Repetition System (SRS)** with real timestamp math, a due-today queue, review counts, and expanding intervals.
+- **Live VOA Learning English headlines** via the RSS-to-JSON endpoint, with a glowing **🔴 LIVE VOA NEWS** badge when a target word appears in a current headline or snippet.
+- **Portable progress files** — download `voa_learning_progress.txt` and restore it on any browser or device.
+- **Reporter HUD** — Intern → Field Journalist → Senior Editor → Anchor, mastery progress out of 500, daily streak, and accuracy.
+- **Responsive newsroom UI** — navy/slate glassmorphism, VOA red accents, editorial serif headlines, light/dark themes, reduced-motion support, and keyboard-friendly controls.
+
+## Spaced repetition
+
+Each word stores `status`, `lastReviewed`, `reviewCount`, and `nextReviewDue`.
+
+| Review count | SRS level | Next interval |
+| ---: | --- | ---: |
+| 0 | New | Ready now |
+| 1 | Level 1 · Learning | +1 day |
+| 2–3 | Level 2 · Practicing | +3 days |
+| 4–5 | Level 3 · Reviewing | +7 days |
+| 6+ | Level 4 · Mastered | +30 days |
+
+A word appears in **Due Today** when `nextReviewDue` is at or before the current system time. New words start due so a learner can begin immediately.
+
+A correct answer files a review, advances the interval, and updates the daily streak. A miss records the attempt and leaves the word due so it returns quickly.
+
+## Live VOA feed
+
+`script.js` fetches:
+
+```text
+https://api.rss2json.com/v1/api.json?rss_url=https://learningenglish.voanews.com/api/
+```
+
+The feed is cached for 15 minutes in `sessionStorage`. When a target word appears in a headline or snippet, the studio shows a glowing live badge, highlights the word, and links to the original VOA story. If the feed is unavailable or no match exists, the embedded journalistic headline template is used instead. The ticker has a manual refresh control.
+
+## Progress files
+
+- **💾 Save Progress File** serializes the full state and downloads `voa_learning_progress.txt`.
+- **📂 Load Progress File** accepts that text file (or a JSON export) and restores word records, streak, stats, and theme.
+- Active progress is also saved automatically to `localStorage` after every review or interaction.
+
+The file is JSON with a `.txt` extension so it is easy to email, store, or move between devices. Nothing is uploaded anywhere.
+
+## Run locally
+
+Because the app is static, any read-only file server works:
+
+```bash
+cd voa-newsroom-esl-studio
+python3 -m http.server 8000
+```
+
+Then open <http://localhost:8000/>.
+
+A local server is recommended over opening `index.html` directly because the RSS request and some browser speech APIs behave better with an HTTP origin.
+
+## Deploy to GitHub Pages
+
+1. Push the repository to GitHub.
+2. Open **Settings → Pages**.
+3. Set **Source** to **Deploy from a branch**.
+4. Choose the `main` branch and the `/ (root)` folder.
+5. Save. The site publishes at `https://<user>.github.io/<repo>/`.
+
+No Actions workflow or build step is required. `.nojekyll` is included so GitHub Pages serves the files as-is.
+
+## Browser support
+
+| Feature | Recommended browsers |
+| --- | --- |
+| Core studio, SRS, progress files | All modern browsers |
+| Text-to-speech | Chrome, Edge, Safari |
+| Speech recognition | Chrome, Edge (Web Speech API) |
+| Live RSS feed | Any browser with `fetch` and CORS access to rss2json |
+
+Firefox does not expose speech recognition. The read-aloud desk detects this and offers a practice fallback; all other desks remain usable. Microphone permission is requested only when **Report Live** is pressed.
+
+## Privacy
+
+- No analytics, tracking, cookies, or accounts.
+- Progress stays in `localStorage` and in files you explicitly export.
+- The only network request is the public VOA RSS feed via rss2json.
+- Speech is handled by the browser's native speech APIs; the app does not record or upload audio.
+
+## Project structure
+
+```text
+voa-newsroom-esl-studio/
+├── index.html      # Semantic newsroom shell and five activity panels
+├── style.css       # Navy/slate glass design system and responsive layout
+├── script.js       # 500-word library, SRS engine, RSS, speech, activities
+├── favicon.svg
+├── screenshot.png
+├── screenshot-mobile.png
+├── README.md
+├── LICENSE
+├── STATE.md
+├── state.json
+└── .nojekyll
+```
+
+## Credits
+
+Built with [OpenCode](https://opencode.ai) and **DeepSeek V4.1 Flash** (`opencode-go/deepseek-v4.1-flash`).
+
+Live headlines are provided by [VOA Learning English](https://learningenglish.voanews.com/) through the public RSS feed and the [rss2json](https://rss2json.com/) client endpoint. VOA is the Voice of America; this is an independent learning project and is not an official VOA product.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
