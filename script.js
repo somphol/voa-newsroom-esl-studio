@@ -829,6 +829,7 @@ const els = {
   readStopBtn: $("readStopBtn"),
   readPlayBtn: $("readPlayBtn"),
   readRefreshBtn: $("readRefreshBtn"),
+  readMoreBtn: $("readMoreBtn"),
   readStatus: $("readStatus"),
   readTranscript: $("readTranscript"),
   readTranscriptText: $("readTranscriptText"),
@@ -929,6 +930,7 @@ const ui = {
   readSolved: false,
   readIndex: 0,
   webExamples: new Map(),
+  webFetchState: new Map(),
   readFetching: false,
   readFetchToken: 0,
   recognizing: false,
@@ -1872,6 +1874,48 @@ async function fetchWikipediaExamples(word) {
   }));
 }
 
+async function fetchWikipediaSearchExamples(word, offset = 0) {
+  const search = encodeURIComponent(`"${word.word}"`);
+  const data = await fetchJsonWithTimeout(
+    `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${search}&gsrlimit=5&gsroffset=${offset}&prop=extracts&exintro=1&explaintext=1&exlimit=5&format=json&origin=*`,
+  );
+  const pages = data?.query?.pages
+    ? Object.values(data.query.pages).sort((a, b) => (a.index || 0) - (b.index || 0))
+    : [];
+  const examples = [];
+  pages.forEach((page) => {
+    const extract = page.extract || "";
+    const sentences = extract.match(/[^.!?]+[.!?]+/g) || (extract ? [extract] : []);
+    sentences.forEach((sentence) => {
+      examples.push({
+        text: sentence,
+        source: `Wikipedia · ${page.title}`,
+        link: page.pageid
+          ? `https://en.wikipedia.org/?curid=${page.pageid}`
+          : "https://en.wikipedia.org/",
+      });
+    });
+  });
+  return {
+    examples,
+    nextOffset: offset + pages.length,
+    hasMore: pages.length >= 5,
+  };
+}
+
+function filterWebExamples(items, word, seen = new Set()) {
+  return items
+    .map((item) => ({ ...item, text: item.text.replace(/\s+/g, " ").trim() }))
+    .filter((item) => {
+      const key = normalize(item.text);
+      const wordCount = item.text.split(/\s+/).filter(Boolean).length;
+      if (!key || seen.has(key) || item.text.length < 24 || item.text.length > 280) return false;
+      if (wordCount < 4 || !matchesWord(item.text, word.word)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
 async function fetchWebExamples(word) {
   const [dictionary, wiktionary, wikipedia] = await Promise.allSettled([
     fetchDictionaryExamples(word),
@@ -1882,19 +1926,7 @@ async function fetchWebExamples(word) {
   if (dictionary.status === "fulfilled") combined.push(...dictionary.value);
   if (wiktionary.status === "fulfilled") combined.push(...wiktionary.value);
   if (wikipedia.status === "fulfilled") combined.push(...wikipedia.value);
-
-  const seen = new Set();
-  return combined
-    .map((item) => ({ ...item, text: item.text.replace(/\s+/g, " ").trim() }))
-    .filter((item) => {
-      const key = normalize(item.text);
-      const wordCount = item.text.split(/\s+/).filter(Boolean).length;
-      if (!key || seen.has(key) || item.text.length < 24 || item.text.length > 280) return false;
-      if (wordCount < 4 || !matchesWord(item.text, word.word)) return false;
-      seen.add(key);
-      return true;
-    })
-    .slice(0, 8);
+  return filterWebExamples(combined, word).slice(0, 8);
 }
 
 function getReadCandidates(word) {
@@ -1986,6 +2018,74 @@ async function refreshReadExample() {
       ui.readFetching = false;
       els.readRefreshBtn.disabled = false;
       els.readRefreshBtn.textContent = "🔄 New sentence";
+      updateReadMoreButton();
+    }
+  }
+}
+
+function updateReadMoreButton() {
+  const state = ui.selectedId ? ui.webFetchState.get(ui.selectedId) : null;
+  const noMore = state?.hasMore === false;
+  els.readMoreBtn.disabled = ui.readFetching || noMore;
+  els.readMoreBtn.textContent = noMore ? "✓ No more examples" : "➕ More examples";
+}
+
+async function fetchMoreExamples() {
+  const word = selectedWord();
+  if (!word || ui.readFetching) return;
+
+  const token = ++ui.readFetchToken;
+  const fetchState = ui.webFetchState.get(word.id) || { offset: 0, hasMore: true };
+  if (!fetchState.hasMore) {
+    els.readStatus.textContent = "No more web examples were found for this word.";
+    els.readStatus.className = "status-line";
+    updateReadMoreButton();
+    return;
+  }
+
+  ui.readFetching = true;
+  els.readRefreshBtn.disabled = true;
+  els.readMoreBtn.disabled = true;
+  els.readMoreBtn.textContent = "🔎 Fetching…";
+  els.readStatus.textContent = "Fetching another batch of examples from Wikipedia…";
+  els.readStatus.className = "status-line";
+
+  try {
+    const result = await fetchWikipediaSearchExamples(word, fetchState.offset);
+    if (token !== ui.readFetchToken) return;
+    const existing = ui.webExamples.get(word.id) || [];
+    const seen = new Set(existing.map((item) => normalize(item.text)));
+    const newItems = filterWebExamples(result.examples, word, seen);
+    const combined = [...existing, ...newItems];
+    ui.webExamples.set(word.id, combined);
+    ui.webFetchState.set(word.id, {
+      offset: result.nextOffset,
+      hasMore: result.hasMore,
+    });
+
+    if (newItems.length) {
+      const candidates = getReadCandidates(word);
+      const firstNew = candidates.findIndex(
+        (candidate) =>
+          candidate.kind === "web" && normalize(candidate.text) === normalize(newItems[0].text),
+      );
+      if (firstNew >= 0) ui.readIndex = firstNew;
+    }
+    renderReadPanel();
+    els.readStatus.textContent = newItems.length
+      ? `Added ${newItems.length} new example${newItems.length === 1 ? "" : "s"} from Wikipedia. ${combined.length} web examples cached for this word.`
+      : "No new examples in that batch. Try another batch or refresh the sentence.";
+    els.readStatus.className = newItems.length ? "status-line is-success" : "status-line";
+  } catch (error) {
+    if (token !== ui.readFetchToken) return;
+    els.readStatus.textContent =
+      "Could not fetch more examples right now. Check your connection and try again.";
+    els.readStatus.className = "status-line is-error";
+  } finally {
+    if (token === ui.readFetchToken) {
+      ui.readFetching = false;
+      els.readRefreshBtn.disabled = false;
+      updateReadMoreButton();
     }
   }
 }
@@ -2008,6 +2108,7 @@ function resetReadUI() {
   els.readManualBtn.textContent = "Microphone unavailable? Mark this report as practiced";
   els.readRefreshBtn.disabled = false;
   els.readRefreshBtn.textContent = "🔄 New sentence";
+  updateReadMoreButton();
 }
 
 function renderReadPanel() {
@@ -3079,6 +3180,7 @@ function wireEvents() {
   els.readStopBtn.addEventListener("click", stopRecognition);
   els.readPlayBtn.addEventListener("click", playHeadline);
   els.readRefreshBtn.addEventListener("click", refreshReadExample);
+  els.readMoreBtn.addEventListener("click", fetchMoreExamples);
   els.readManualBtn.addEventListener("click", () => {
     const word = selectedWord();
     if (!word) return;

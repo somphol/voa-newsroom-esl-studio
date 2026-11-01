@@ -13,20 +13,20 @@
   ],
   "build": {
     "startedAt": "2026-10-31T23:15:39.471Z",
-    "completedAt": "2026-11-01T01:02:52.000Z",
-    "durationSeconds": 6432.5,
-    "durationHuman": "1h 47m 13s",
+    "completedAt": "2026-11-01T01:12:26.000Z",
+    "durationSeconds": 7006.5,
+    "durationHuman": "1h 56m 47s",
     "timezone": "UTC",
     "note": "Elapsed time from the OpenCode session creation to the token snapshot used for this state file. The final commit/push and closing response occur outside the snapshot."
   },
   "tokens": {
-    "input": 106994,
-    "output": 138876,
-    "reasoning": 127087,
-    "cacheRead": 85252352,
+    "input": 114265,
+    "output": 149921,
+    "reasoning": 134711,
+    "cacheRead": 101148288,
     "cacheWrite": 1645,
-    "total": 372957,
-    "totalWithCache": 85626954,
+    "total": 398897,
+    "totalWithCache": 101548830,
     "note": "Snapshot from the OpenCode session record when the project was packaged. total = input + output + reasoning. Cache reads/writes are reported separately because they are a subset of context usage."
   },
   "cost": {
@@ -69,16 +69,16 @@
     },
     "files": {
       "index.html": {
-        "bytes": 25512,
-        "lines": 445
+        "bytes": 25616,
+        "lines": 446
       },
       "style.css": {
         "bytes": 51489,
         "lines": 2635
       },
       "script.js": {
-        "bytes": 146365,
-        "lines": 3208
+        "bytes": 150333,
+        "lines": 3310
       }
     },
     "singlePage": true,
@@ -101,7 +101,8 @@
     "Word studio converted to a large accessible modal (1280px desktop / near-full-screen mobile) with backdrop close, Escape close, focus trap, and focus return.",
     "Sentence bank verified: four examples per word, refresh cycling, sentence audio, fill-in-the-blank checking, and SRS update.",
     "Font size control verified from 80% to 140%, persisted through reload and progress export/import.",
-    "Read-aloud refresh verified against live VOA, Free Dictionary API, Wiktionary, and Wikipedia, with offline fallback to built-in examples."
+    "Read-aloud refresh verified against live VOA, Free Dictionary API, Wiktionary, and Wikipedia, with offline fallback to built-in examples.",
+    "On-demand paging verified: first More examples batch added 29 Wikipedia sentences and a second batch added 9 more for the same word."
   ],
   "artifacts": [
     "index.html",

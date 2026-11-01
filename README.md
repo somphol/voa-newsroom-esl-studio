@@ -57,6 +57,8 @@ The feed is cached for 15 minutes in `sessionStorage`. When a target word appear
 
 The **Anchor Read-Aloud** desk has its own **🔄 New sentence** button. It cycles through live VOA matches, then fetches additional examples from the [Free Dictionary API](https://dictionaryapi.dev/), [Wiktionary](https://en.wiktionary.org/), and [Wikipedia](https://www.wikipedia.org/), with the four built-in newsroom examples as an offline fallback.
 
+The **➕ More examples** button keeps pulling additional Wikipedia search batches for the current word. Each batch is appended to the cached example pool, so the learner can keep fetching and cycling through as many examples as they want.
+
 ![Anchor Read-Aloud with a refreshed web example](screenshot-read.png)
 
 ## Progress files

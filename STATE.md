@@ -4,8 +4,8 @@
 | --- | --- |
 | Project | VOA Newsroom: 500 Words ESL Studio (`voa-newsroom-esl-studio`) |
 | Started | 2026-10-31 23:15:39 UTC |
-| Completed | 2026-11-01 01:02:52 UTC |
-| Duration | **1h 47m 13s** (6,432.5 seconds) |
+| Completed | 2026-11-01 01:12:26 UTC |
+| Duration | **1h 56m 47s** (7,006.5 seconds) |
 | Harness | OpenCode 2.2.5 |
 | Model | DeepSeek V4.1 Flash (`opencode-go/deepseek-v4.1-flash`) |
 | Session | `ses_e6bc0b0c3ffeBbI7KPINLa6RIR` |
@@ -16,19 +16,19 @@
 
 | Metric | Tokens |
 | --- | ---: |
-| Input | 106,994 |
-| Output | 138,876 |
-| Reasoning | 127,087 |
-| **Total (input + output + reasoning)** | **372,957** |
-| Cache read | 85,252,352 |
+| Input | 114,265 |
+| Output | 149,921 |
+| Reasoning | 134,711 |
+| **Total (input + output + reasoning)** | **398,897** |
+| Cache read | 101,148,288 |
 | Cache write | 1,645 |
-| Total including cache | 85,626,954 |
+| Total including cache | 101,548,830 |
 
-> Snapshot taken from the OpenCode session record when the project was packaged at 2026-11-01 01:02:52 UTC. The final commit/push and the closing response occur outside this snapshot, so the live session totals will be marginally higher. `total = input + output + reasoning`; cache reads/writes are reported separately because they are a subset of context usage.
+> Snapshot taken from the OpenCode session record when the project was packaged at 2026-11-01 01:12:26 UTC. The final commit/push and the closing response occur outside this snapshot, so the live session totals will be marginally higher. `total = input + output + reasoning`; cache reads/writes are reported separately because they are a subset of context usage.
 
 ## What was built
 
-- **Three production files**: `index.html` (445 lines), `style.css` (2,635 lines), `script.js` (3,208 lines). No build step, no framework, no backend, no database.
+- **Three production files**: `index.html` (446 lines), `style.css` (2,635 lines), `script.js` (3,310 lines). No build step, no framework, no backend, no database.
 - **500 curated words**, exactly 125 per beat: World Politics, Business & Economy, Science & Tech, and Culture. Every entry has a definition, IPA, visual syllable chunks, a category headline template, and four example sentences.
 - **Six learning desks**:
   - Anchor Read-Aloud with `webkitSpeechRecognition`, transcript feedback, accuracy meter, and SRS update.
@@ -42,6 +42,7 @@
 - **SRS engine** with `status`, `lastReviewed`, `reviewCount`, and `nextReviewDue`; intervals of 1 / 3 / 7 / 30 days and a Due Today queue filtered by timestamp.
 - **Live VOA integration** through `https://api.rss2json.com/v1/api.json?rss_url=https://learningenglish.voanews.com/api/`, with headline/snippet matching, a glowing live badge, target-word highlighting, direct VOA links, 15-minute session caching, and embedded headline fallbacks.
 - **Read-aloud example refresh** cycles live VOA matches and fetches additional sentences from the Free Dictionary API, Wiktionary, and Wikipedia; built-in examples remain the offline fallback.
+- **On-demand example paging**: the **➕ More examples** button pulls successive Wikipedia search batches and appends them to the per-word cache, so users can keep expanding the example pool.
 - **Reporter HUD**: Intern → Field Journalist → Senior Editor → Anchor, mastery out of 500, daily streak, accuracy, and review totals.
 - **Portable progress**: automatic `localStorage` saves, `voa_learning_progress.txt` export, and file import with validation.
 - **Newsroom UI**: navy/slate glassmorphism, VOA red accents, editorial serif headlines, responsive layouts, light/dark themes, reduced-motion support, keyboard navigation, and ARIA labels.
@@ -56,6 +57,7 @@
 - Font size control verified from 80% to 140%, persisted through reload and progress export/import.
 - Live RSS returned real VOA Learning English items; a matching word showed the live badge and a valid `learningenglish.voanews.com` link.
 - Read-aloud refresh verified against live VOA, Free Dictionary API, Wiktionary, and Wikipedia, with offline fallback to built-in examples.
+- On-demand paging verified: the first “More examples” batch added 29 Wikipedia sentences and a second batch added 9 more for the same word.
 - Export produced `voa_learning_progress.txt` with 500 word records; import restored it successfully.
 - Responsive checks at 1600px, 1440px, 1024px, and 390px; mobile HUD stacks and the word studio opens as a near-full-screen modal.
 - Word studio modal verified at 1280px wide / 640px tall on desktop and 370px wide on mobile, with backdrop close, Escape close, focus trap, and focus return.
