@@ -146,6 +146,27 @@ Built with [OpenCode](https://opencode.ai) and **DeepSeek V4.1 Flash** (`opencod
 
 Live headlines are provided by [VOA Learning English](https://learningenglish.voanews.com/) through the public RSS feed and the [rss2json](https://rss2json.com/) client endpoint. Optional example lookups use the [Free Dictionary API](https://dictionaryapi.dev/), [Wiktionary](https://en.wiktionary.org/), and [Wikipedia](https://www.wikipedia.org/). VOA is the Voice of America; this is an independent learning project and is not an official VOA product.
 
+## Contributing
+
+Contributions are welcome — bug reports, feature ideas, accessibility improvements, and
+documentation fixes alike. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and the
+[Code of Conduct](CODE_OF_CONDUCT.md) before opening a pull request.
+
+- **Found a bug?** [Open a bug report](https://github.com/somphol/voa-newsroom-esl-studio/issues/new?template=bug_report.yml)
+- **Have an idea?** [Request a feature](https://github.com/somphol/voa-newsroom-esl-studio/issues/new?template=feature_request.yml)
+- **Found a vulnerability?** Please follow [SECURITY.md](SECURITY.md) and report it privately.
+
+## Documentation
+
+| Document | Purpose |
+| --- | --- |
+| [README.md](README.md) | Overview, setup, controls, and architecture |
+| [CHANGELOG.md](CHANGELOG.md) | Notable changes and release history |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Local workflow, constraints, and pull request checks |
+| [SECURITY.md](SECURITY.md) | Supported versions and private vulnerability reporting |
+| [STATE.md](STATE.md) | Build timing, verification record, and token usage |
+| [LICENSE](LICENSE) | MIT licence |
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
