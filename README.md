@@ -1,10 +1,21 @@
-# VOA Newsroom: 500 Words ESL Studio
+<div align="center">
 
-A production-ready, browser-native vocabulary studio for ESL learners, built around a digital newsroom. It runs entirely from a read-only static host such as GitHub Pages — no backend, no database, no build step, and no account.
+<img src="docs/social-card.png" alt="VOA Newsroom — 500 Words ESL Studio" width="100%" />
 
-![VOA Newsroom screenshot](screenshot.png)
+# VOA Newsroom
 
-**Live demo:** <https://somphol.github.io/voa-newsroom-esl-studio/>
+**500 Words ESL Studio**
+
+A newsroom-themed vocabulary studio with 500 curated words, six learning desks, live VOA headlines, and spaced repetition.
+
+[![Live demo](https://img.shields.io/badge/live_demo-online-ef4444?style=flat-square)](https://somphol.github.io/voa-newsroom-esl-studio/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-ef4444?style=flat-square)](LICENSE)
+
+**[Try it live →](https://somphol.github.io/voa-newsroom-esl-studio/)**
+
+</div>
+
+---
 
 ## What it does
 
