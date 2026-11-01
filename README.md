@@ -19,9 +19,10 @@ A production-ready, browser-native vocabulary studio for ESL learners, built aro
   3. **Copy Editor Challenge** — choose or type the missing word in a headline.
   4. **Speed Match Ticker** — 60 seconds, five words and five definitions per board.
   5. **Syllable & Phonetic Explorer** — tap syllable chunks, hear each one, and practise the stress pattern.
-  6. **Sentence Practice** — four example sentences per word, a refresh button, sentence audio, and a fill-in-the-blank check.
+  6. **Sentence Practice** — four example sentences per word, a refresh button, sentence audio, a fill-in-the-blank check, per-sentence solved tracking, and a reset control.
 - **Adjustable text size** — 80% to 140% with a persistent setting for comfortable reading.
 - **Example sentence bank** — each word has four examples: a definition sentence, two newsroom context sentences, and its headline. Refresh cycles through them.
+- **Per-sentence progress** — solved examples are tracked individually. Refresh moves to the next sentence, and **↺ Reset this sentence** lets you practise a solved one again without double-counting SRS.
 - **Spaced Repetition System (SRS)** with real timestamp math, a due-today queue, review counts, and expanding intervals.
 - **Live VOA Learning English headlines** via the RSS-to-JSON endpoint, with a glowing **🔴 LIVE VOA NEWS** badge when a target word appears in a current headline or snippet.
 - **Portable progress files** — download `voa_learning_progress.txt` and restore it on any browser or device.

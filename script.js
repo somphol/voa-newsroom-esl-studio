@@ -878,6 +878,7 @@ const els = {
   sentenceInput: $("sentenceInput"),
   sentenceCheckBtn: $("sentenceCheckBtn"),
   sentenceFeedback: $("sentenceFeedback"),
+  sentenceResetBtn: $("sentenceResetBtn"),
   sentenceStatus: $("sentenceStatus"),
 
   toast: $("toast"),
@@ -924,7 +925,8 @@ const ui = {
   editorOptions: [],
   sentenceIndex: 0,
   sentenceWordId: null,
-  sentenceSolved: false,
+  sentenceSolvedKeys: new Set(),
+  sentenceSrsKeys: new Set(),
   sentenceAttempts: 0,
   readEvaluated: false,
   readSolved: false,
@@ -1514,7 +1516,6 @@ function selectWord(wordId) {
   ui.editorAttempts = 0;
   ui.sentenceIndex = 0;
   ui.sentenceWordId = null;
-  ui.sentenceSolved = false;
   ui.sentenceAttempts = 0;
   ui.match.wordId = null;
 
@@ -2831,13 +2832,31 @@ function currentSentence() {
   return word.examples[ui.sentenceIndex % word.examples.length];
 }
 
+function sentenceKey(word, sentence) {
+  return `${word.id}::${normalize(sentence)}`;
+}
+
+function isSentenceSolved(word, sentence) {
+  return ui.sentenceSolvedKeys.has(sentenceKey(word, sentence));
+}
+
+function markSentenceSolved(word, sentence) {
+  ui.sentenceSolvedKeys.add(sentenceKey(word, sentence));
+}
+
+function markSentenceSrs(word, sentence) {
+  const key = sentenceKey(word, sentence);
+  if (ui.sentenceSrsKeys.has(key)) return false;
+  ui.sentenceSrsKeys.add(key);
+  return true;
+}
+
 function renderStudioExample() {
   const word = selectedWord();
   if (!word) return;
   if (ui.sentenceWordId !== word.id) {
     ui.sentenceWordId = word.id;
     ui.sentenceIndex = 0;
-    ui.sentenceSolved = false;
     ui.sentenceAttempts = 0;
   }
   const sentence = currentSentence();
@@ -2850,7 +2869,9 @@ function renderSentenceCard() {
   const sentence = currentSentence();
   const index = ui.sentenceIndex % word.examples.length;
   const contextCount = word.examples.length - 2;
-  els.sentenceBadge.textContent = `EXAMPLE ${index + 1} OF ${word.examples.length}`;
+  const solved = isSentenceSolved(word, sentence);
+  els.sentenceBadge.textContent = `${solved ? "✓ " : ""}EXAMPLE ${index + 1} OF ${word.examples.length}`;
+  els.sentenceBadge.classList.toggle("is-solved", solved);
   els.sentenceText.innerHTML = highlightWord(sentence, word.word);
   els.sentenceSource.textContent =
     index < contextCount
@@ -2867,6 +2888,7 @@ function resetSentencePractice() {
   els.sentenceInput.disabled = false;
   els.sentenceCheckBtn.disabled = false;
   els.sentenceFeedback.hidden = true;
+  els.sentenceResetBtn.hidden = true;
   els.sentenceStatus.textContent = "Pick a sentence, then listen or fill in the missing word.";
   els.sentenceStatus.className = "status-line";
 }
@@ -2877,7 +2899,6 @@ function renderSentencePanel() {
   if (ui.sentenceWordId !== word.id) {
     ui.sentenceWordId = word.id;
     ui.sentenceIndex = 0;
-    ui.sentenceSolved = false;
     ui.sentenceAttempts = 0;
     resetSentencePractice();
   }
@@ -2898,28 +2919,34 @@ function openSentencePractice() {
   const word = selectedWord();
   if (!word) return;
   const sentence = currentSentence();
+  const solved = isSentenceSolved(word, sentence);
   els.sentencePractice.hidden = false;
   els.sentenceBlank.innerHTML = blankHeadline(sentence, word.word);
   els.sentenceInput.value = "";
-  els.sentenceInput.disabled = ui.sentenceSolved;
-  els.sentenceCheckBtn.disabled = ui.sentenceSolved;
-  els.sentenceFeedback.hidden = !ui.sentenceSolved;
-  if (ui.sentenceSolved) {
+  els.sentenceInput.disabled = solved;
+  els.sentenceCheckBtn.disabled = solved;
+  els.sentenceFeedback.hidden = !solved;
+  els.sentenceResetBtn.hidden = !solved;
+  if (solved) {
     els.sentenceFeedback.className = "feedback is-correct";
-    els.sentenceFeedback.textContent = "This sentence is already filed. Refresh for another example.";
+    els.sentenceFeedback.textContent =
+      "This sentence is already filed. Refresh for another example or reset this sentence.";
   }
   setTimeout(() => {
-    if (!ui.sentenceSolved) els.sentenceInput.focus();
+    if (!solved) els.sentenceInput.focus();
   }, 30);
 }
 
 function checkSentenceAnswer() {
   const word = selectedWord();
-  if (!word || !currentSentence()) return;
-  if (ui.sentenceSolved) {
+  const sentence = currentSentence();
+  if (!word || !sentence) return;
+  if (isSentenceSolved(word, sentence)) {
     els.sentenceFeedback.hidden = false;
     els.sentenceFeedback.className = "feedback";
-    els.sentenceFeedback.textContent = "Already filed — refresh for a fresh sentence.";
+    els.sentenceFeedback.textContent =
+      "This sentence is already filed. Refresh for another example or reset this sentence.";
+    els.sentenceResetBtn.hidden = false;
     return;
   }
   const guess = normalize(els.sentenceInput.value);
@@ -2930,19 +2957,26 @@ function checkSentenceAnswer() {
     return;
   }
   if (guess === normalize(word.word)) {
-    ui.sentenceSolved = true;
+    markSentenceSolved(word, sentence);
+    const firstSrs = markSentenceSrs(word, sentence);
     els.sentencePractice.hidden = false;
-    els.sentenceBlank.innerHTML = blankHeadline(currentSentence(), word.word);
+    els.sentenceBlank.innerHTML = blankHeadline(sentence, word.word);
     const blank = els.sentenceBlank.querySelector(".blank");
     if (blank) blank.outerHTML = `<mark>${escapeHtml(word.word)}</mark>`;
     els.sentenceInput.disabled = true;
     els.sentenceCheckBtn.disabled = true;
     els.sentenceFeedback.hidden = false;
     els.sentenceFeedback.className = "feedback is-correct";
-    els.sentenceFeedback.textContent = `Filed. “${word.word}” completes the sentence. SRS timestamp updated.`;
-    els.sentenceStatus.textContent = "Sentence filed. Refresh for another example or return to the word desk.";
+    els.sentenceFeedback.textContent = firstSrs
+      ? `Filed. “${word.word}” completes the sentence. SRS timestamp updated.`
+      : `Practice pass. “${word.word}” completes the sentence; this sentence was already filed for SRS.`;
+    els.sentenceResetBtn.hidden = false;
+    els.sentenceStatus.textContent = firstSrs
+      ? "Sentence filed. Refresh for another example or reset this sentence."
+      : "Practice pass. Reset this sentence to try it again without changing the SRS record.";
     els.sentenceStatus.className = "status-line is-success";
-    completeWord(word.id, "sentence", true);
+    if (firstSrs) completeWord(word.id, "sentence", true);
+    renderSentenceCard();
     return;
   }
 
@@ -2956,6 +2990,24 @@ function checkSentenceAnswer() {
   els.sentenceStatus.textContent = "Keep going — the sentence is still waiting for its missing word.";
   els.sentenceStatus.className = "status-line is-error";
   recordMiss(word.id);
+}
+
+function resetSentenceSolved() {
+  const word = selectedWord();
+  const sentence = currentSentence();
+  if (!word || !sentence) return;
+  ui.sentenceSolvedKeys.delete(sentenceKey(word, sentence));
+  ui.sentenceAttempts = 0;
+  els.sentenceInput.value = "";
+  els.sentenceInput.disabled = false;
+  els.sentenceCheckBtn.disabled = false;
+  els.sentenceFeedback.hidden = true;
+  els.sentenceResetBtn.hidden = true;
+  els.sentenceStatus.textContent =
+    "Sentence reset. Try it again; the SRS record for this sentence stays filed.";
+  els.sentenceStatus.className = "status-line";
+  renderSentenceCard();
+  setTimeout(() => els.sentenceInput.focus(), 30);
 }
 
 function playSentence() {
@@ -3247,6 +3299,7 @@ function wireEvents() {
   els.sentencePlayBtn.addEventListener("click", playSentence);
   els.sentencePracticeBtn.addEventListener("click", openSentencePractice);
   els.sentenceCheckBtn.addEventListener("click", checkSentenceAnswer);
+  els.sentenceResetBtn.addEventListener("click", resetSentenceSolved);
   els.sentenceInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter") checkSentenceAnswer();
   });

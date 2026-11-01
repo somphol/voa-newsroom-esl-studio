@@ -4,8 +4,8 @@
 | --- | --- |
 | Project | VOA Newsroom: 500 Words ESL Studio (`voa-newsroom-esl-studio`) |
 | Started | 2026-10-31 23:15:39 UTC |
-| Completed | 2026-11-01 01:12:26 UTC |
-| Duration | **1h 56m 47s** (7,006.5 seconds) |
+| Completed | 2026-11-01 01:23:54 UTC |
+| Duration | **2h 8m 15s** (7,694.5 seconds) |
 | Harness | OpenCode 2.2.5 |
 | Model | DeepSeek V4.1 Flash (`opencode-go/deepseek-v4.1-flash`) |
 | Session | `ses_e6bc0b0c3ffeBbI7KPINLa6RIR` |
@@ -16,19 +16,19 @@
 
 | Metric | Tokens |
 | --- | ---: |
-| Input | 114,265 |
-| Output | 149,921 |
-| Reasoning | 134,711 |
-| **Total (input + output + reasoning)** | **398,897** |
-| Cache read | 101,148,288 |
+| Input | 122,848 |
+| Output | 160,790 |
+| Reasoning | 141,436 |
+| **Total (input + output + reasoning)** | **425,074** |
+| Cache read | 118,882,304 |
 | Cache write | 1,645 |
-| Total including cache | 101,548,830 |
+| Total including cache | 119,309,023 |
 
-> Snapshot taken from the OpenCode session record when the project was packaged at 2026-11-01 01:12:26 UTC. The final commit/push and the closing response occur outside this snapshot, so the live session totals will be marginally higher. `total = input + output + reasoning`; cache reads/writes are reported separately because they are a subset of context usage.
+> Snapshot taken from the OpenCode session record when the project was packaged at 2026-11-01 01:23:54 UTC. The final commit/push and the closing response occur outside this snapshot, so the live session totals will be marginally higher. `total = input + output + reasoning`; cache reads/writes are reported separately because they are a subset of context usage.
 
 ## What was built
 
-- **Three production files**: `index.html` (446 lines), `style.css` (2,635 lines), `script.js` (3,310 lines). No build step, no framework, no backend, no database.
+- **Three production files**: `index.html` (447 lines), `style.css` (2,641 lines), `script.js` (3,363 lines). No build step, no framework, no backend, no database.
 - **500 curated words**, exactly 125 per beat: World Politics, Business & Economy, Science & Tech, and Culture. Every entry has a definition, IPA, visual syllable chunks, a category headline template, and four example sentences.
 - **Six learning desks**:
   - Anchor Read-Aloud with `webkitSpeechRecognition`, transcript feedback, accuracy meter, and SRS update.
@@ -36,7 +36,7 @@
   - Copy Editor with blanked headlines, multiple-choice options, and typed answers.
   - Speed Match Ticker with a 60-second clock, five pairs per board, penalties, and rolling rounds.
   - Syllable & Phonetic Explorer with tappable chunks, IPA, stress highlighting, and syllable-by-syllable playback.
-  - Sentence Practice with four examples per word, refresh cycling, sentence audio, and fill-in-the-blank checking.
+  - Sentence Practice with four examples per word, refresh cycling, sentence audio, fill-in-the-blank checking, per-sentence solved tracking, and a reset control.
 - **Comfort controls**: 80%–140% text scaling, persisted in local progress and progress-file exports.
 - **Example sentence bank**: definition, context, and headline examples for every word, refreshable from the word dossier or the sentence desk.
 - **SRS engine** with `status`, `lastReviewed`, `reviewCount`, and `nextReviewDue`; intervals of 1 / 3 / 7 / 30 days and a Due Today queue filtered by timestamp.
@@ -58,6 +58,7 @@
 - Live RSS returned real VOA Learning English items; a matching word showed the live badge and a valid `learningenglish.voanews.com` link.
 - Read-aloud refresh verified against live VOA, Free Dictionary API, Wiktionary, and Wikipedia, with offline fallback to built-in examples.
 - On-demand paging verified: the first “More examples” batch added 29 Wikipedia sentences and a second batch added 9 more for the same word.
+- Per-sentence tracking verified: solving example 1 and example 2 both filed, refreshing to example 1 showed its solved state, and resetting/re-solving it kept the SRS count unchanged.
 - Export produced `voa_learning_progress.txt` with 500 word records; import restored it successfully.
 - Responsive checks at 1600px, 1440px, 1024px, and 390px; mobile HUD stacks and the word studio opens as a near-full-screen modal.
 - Word studio modal verified at 1280px wide / 640px tall on desktop and 370px wide on mobile, with backdrop close, Escape close, focus trap, and focus return.

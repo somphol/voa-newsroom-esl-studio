@@ -2219,6 +2219,12 @@ body.modal-open {
   text-transform: uppercase;
 }
 
+.sentence-badge.is-solved {
+  border-color: rgba(52, 211, 153, 0.34);
+  background: rgba(52, 211, 153, 0.1);
+  color: #a7f3d0;
+}
+
 .sentence-card-top .link-btn {
   margin-top: 0;
 }
