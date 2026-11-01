@@ -828,6 +828,7 @@ const els = {
   readRecordBtn: $("readRecordBtn"),
   readStopBtn: $("readStopBtn"),
   readPlayBtn: $("readPlayBtn"),
+  readRefreshBtn: $("readRefreshBtn"),
   readStatus: $("readStatus"),
   readTranscript: $("readTranscript"),
   readTranscriptText: $("readTranscriptText"),
@@ -926,6 +927,10 @@ const ui = {
   sentenceAttempts: 0,
   readEvaluated: false,
   readSolved: false,
+  readIndex: 0,
+  webExamples: new Map(),
+  readFetching: false,
+  readFetchToken: 0,
   recognizing: false,
   recognition: null,
   match: {
@@ -1496,6 +1501,9 @@ function selectWord(wordId) {
   ui.activity = "read";
   ui.readEvaluated = false;
   ui.readSolved = false;
+  ui.readIndex = 0;
+  ui.readFetching = false;
+  ui.readFetchToken += 1;
   ui.listenSolved = false;
   ui.listenWordId = null;
   ui.listenAttempts = 0;
@@ -1519,6 +1527,8 @@ function closeStudio() {
   stopRecognition();
   stopSpeech();
   stopMatch();
+  ui.readFetchToken += 1;
+  ui.readFetching = false;
   ui.selectedId = null;
   els.studioEmpty.hidden = false;
   els.studioBody.hidden = true;
@@ -1773,6 +1783,214 @@ function highlightWord(text, word) {
 }
 
 /* --------------------------------------------------------------------------
+   Read-aloud example sources
+   -------------------------------------------------------------------------- */
+
+const READ_BADGES = {
+  live: "🔴 LIVE VOA NEWS",
+  web: "🌐 WEB EXAMPLE",
+  local: "📝 EXAMPLE SENTENCE",
+  headline: "📰 NEWSROOM TEMPLATE",
+};
+
+function getLiveMatchesForWord(word) {
+  return ui.feed.filter(
+    (item) => matchesWord(item.title, word.word) || matchesWord(item.description, word.word),
+  );
+}
+
+async function fetchJsonWithTimeout(url, timeoutMs = 8000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchDictionaryExamples(word) {
+  const data = await fetchJsonWithTimeout(
+    `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.word)}`,
+  );
+  if (!Array.isArray(data)) return [];
+  const examples = [];
+  data.forEach((entry) => {
+    (entry.meanings || []).forEach((meaning) => {
+      (meaning.definitions || []).forEach((definition) => {
+        if (definition.example) {
+          examples.push({ text: definition.example, source: "Free Dictionary API" });
+        }
+      });
+    });
+  });
+  return examples;
+}
+
+async function fetchWiktionaryExamples(word) {
+  const data = await fetchJsonWithTimeout(
+    `https://en.wiktionary.org/api/rest_v1/page/definition/${encodeURIComponent(word.word)}`,
+  );
+  if (!data || typeof data !== "object") return [];
+  const examples = [];
+  const entries = data.en || [];
+  if (!Array.isArray(entries)) return [];
+  entries.forEach((entry) => {
+    (entry.definitions || []).forEach((definition) => {
+      (definition.examples || []).forEach((html) => {
+        const text = cleanFeedText(html);
+        if (text) {
+          examples.push({
+            text,
+            source: "Wiktionary",
+            link: `https://en.wiktionary.org/wiki/${encodeURIComponent(word.word)}`,
+          });
+        }
+      });
+    });
+  });
+  return examples;
+}
+
+async function fetchWikipediaExamples(word) {
+  const title = word.word.replace(/\s+/g, "_");
+  const data = await fetchJsonWithTimeout(
+    `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
+  );
+  if (!data || !data.extract) return [];
+  const sentences = data.extract.match(/[^.!?]+[.!?]+/g) || [data.extract];
+  return sentences.map((sentence) => ({
+    text: sentence,
+    source: "Wikipedia",
+    link: data.content_urls?.desktop?.page || "",
+  }));
+}
+
+async function fetchWebExamples(word) {
+  const [dictionary, wiktionary, wikipedia] = await Promise.allSettled([
+    fetchDictionaryExamples(word),
+    fetchWiktionaryExamples(word),
+    fetchWikipediaExamples(word),
+  ]);
+  const combined = [];
+  if (dictionary.status === "fulfilled") combined.push(...dictionary.value);
+  if (wiktionary.status === "fulfilled") combined.push(...wiktionary.value);
+  if (wikipedia.status === "fulfilled") combined.push(...wikipedia.value);
+
+  const seen = new Set();
+  return combined
+    .map((item) => ({ ...item, text: item.text.replace(/\s+/g, " ").trim() }))
+    .filter((item) => {
+      const key = normalize(item.text);
+      const wordCount = item.text.split(/\s+/).filter(Boolean).length;
+      if (!key || seen.has(key) || item.text.length < 24 || item.text.length > 280) return false;
+      if (wordCount < 4 || !matchesWord(item.text, word.word)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 8);
+}
+
+function getReadCandidates(word) {
+  const candidates = [];
+  const seen = new Set();
+  const add = (text, kind, source, link = "") => {
+    const clean = String(text || "").replace(/\s+/g, " ").trim();
+    const key = normalize(clean);
+    if (!clean || !key || seen.has(key)) return;
+    seen.add(key);
+    candidates.push({ text: clean, kind, source, link });
+  };
+
+  getLiveMatchesForWord(word).forEach((item) => {
+    add(item.title, "live", `VOA Learning English · ${formatDate(item.pubDate)}`, item.link);
+  });
+
+  (ui.webExamples.get(word.id) || []).forEach((item) => {
+    add(item.text, "web", item.source, item.link || "");
+  });
+
+  word.examples.forEach((example, index) => {
+    const isHeadline = index === word.examples.length - 1;
+    add(
+      example,
+      isHeadline ? "headline" : "local",
+      isHeadline
+        ? "VOA Newsroom archive · embedded headline"
+        : `VOA Newsroom · example ${index + 1} of ${word.examples.length}`,
+    );
+  });
+
+  return candidates;
+}
+
+function currentReadCandidate() {
+  const word = selectedWord();
+  if (!word) return null;
+  const candidates = getReadCandidates(word);
+  if (!candidates.length) return null;
+  return candidates[ui.readIndex % candidates.length];
+}
+
+async function refreshReadExample() {
+  const word = selectedWord();
+  if (!word || ui.readFetching) return;
+
+  const token = ++ui.readFetchToken;
+  const before = currentReadCandidate();
+  const wasWeb = before?.kind === "web";
+  ui.readFetching = true;
+  els.readRefreshBtn.disabled = true;
+  els.readRefreshBtn.textContent = "🔎 Searching…";
+  els.readStatus.textContent = "Searching VOA, the dictionary, and Wikipedia for another example…";
+  els.readStatus.className = "status-line";
+
+  try {
+    if (!ui.webExamples.has(word.id)) {
+      const fetched = await fetchWebExamples(word);
+      if (token !== ui.readFetchToken) return;
+      ui.webExamples.set(word.id, fetched);
+    }
+    const candidates = getReadCandidates(word);
+    if (!wasWeb && (ui.webExamples.get(word.id) || []).length) {
+      const firstWeb = candidates.findIndex((candidate) => candidate.kind === "web");
+      ui.readIndex = firstWeb >= 0 ? firstWeb : (ui.readIndex + 1) % candidates.length;
+    } else {
+      ui.readIndex = (ui.readIndex + 1) % candidates.length;
+    }
+    renderReadPanel();
+    const candidate = currentReadCandidate();
+    els.readStatus.textContent =
+      candidate?.kind === "web"
+        ? `Fresh example loaded from ${candidate.source}.`
+        : candidate?.kind === "live"
+          ? "Fresh VOA headline loaded."
+          : "Another newsroom example loaded.";
+    els.readStatus.className = "status-line is-success";
+  } catch (error) {
+    if (token !== ui.readFetchToken) return;
+    const candidates = getReadCandidates(word);
+    ui.readIndex = (ui.readIndex + 1) % Math.max(1, candidates.length);
+    renderReadPanel();
+    els.readStatus.textContent =
+      "Web examples are unavailable right now. Another newsroom example is loaded.";
+    els.readStatus.className = "status-line";
+  } finally {
+    if (token === ui.readFetchToken) {
+      ui.readFetching = false;
+      els.readRefreshBtn.disabled = false;
+      els.readRefreshBtn.textContent = "🔄 New sentence";
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
    Desk 01 — Anchor Read-Aloud
    -------------------------------------------------------------------------- */
 
@@ -1788,25 +2006,28 @@ function resetReadUI() {
   els.readRecordBtn.hidden = false;
   els.readManualBtn.hidden = true;
   els.readManualBtn.textContent = "Microphone unavailable? Mark this report as practiced";
+  els.readRefreshBtn.disabled = false;
+  els.readRefreshBtn.textContent = "🔄 New sentence";
 }
 
 function renderReadPanel() {
   const word = selectedWord();
   if (!word) return;
-  const live = ui.liveMatches.get(word.id);
-  const isLive = Boolean(live);
-  const headline = isLive ? live.title : word.headline;
+  const candidate = currentReadCandidate();
+  if (!candidate) return;
+  const isLive = candidate.kind === "live";
 
-  els.readBadge.textContent = isLive ? "🔴 LIVE VOA NEWS" : "📰 Newsroom template";
+  els.readBadge.textContent = READ_BADGES[candidate.kind] || READ_BADGES.local;
   els.readBadge.classList.toggle("is-live", isLive);
+  els.readBadge.classList.toggle("is-web", candidate.kind === "web");
   els.readLiveCard.classList.toggle("is-live", isLive);
-  els.readSource.textContent = isLive
-    ? `VOA Learning English · ${formatDate(live.pubDate)}`
-    : "VOA Newsroom archive · embedded template";
-  els.readHeadline.innerHTML = highlightWord(headline, word.word);
+  els.readSource.textContent = candidate.source;
+  els.readHeadline.innerHTML = highlightWord(candidate.text, word.word);
 
-  if (isLive && live.link) {
-    els.readLink.href = live.link;
+  if (candidate.link) {
+    els.readLink.href = candidate.link;
+    els.readLink.textContent =
+      candidate.kind === "live" ? "Read the full story on VOA →" : "Read more at the source →";
     els.readLink.hidden = false;
   } else {
     els.readLink.hidden = true;
@@ -2048,10 +2269,10 @@ async function speakParts(parts, rate = 0.7) {
 function playHeadline() {
   const word = selectedWord();
   if (!word) return;
-  const live = ui.liveMatches.get(word.id);
-  const headline = live ? live.title : word.headline;
+  const candidate = currentReadCandidate();
+  if (!candidate) return;
   touchWord(word.id);
-  speakText(headline.replace(/[“”"']/g, ""), 0.9);
+  speakText(candidate.text.replace(/[“”"']/g, ""), 0.9);
 }
 
 /* --------------------------------------------------------------------------
@@ -2737,6 +2958,8 @@ function resetAllProgress() {
   applyTheme(state.settings.theme);
   applyFontScale(state.settings.fontScale || 1);
   ui.selectedId = null;
+  ui.readFetchToken += 1;
+  ui.readFetching = false;
   els.studioEmpty.hidden = false;
   els.studioBody.hidden = true;
   closeStudioModal();
@@ -2855,6 +3078,7 @@ function wireEvents() {
   els.readRecordBtn.addEventListener("click", startRecognition);
   els.readStopBtn.addEventListener("click", stopRecognition);
   els.readPlayBtn.addEventListener("click", playHeadline);
+  els.readRefreshBtn.addEventListener("click", refreshReadExample);
   els.readManualBtn.addEventListener("click", () => {
     const word = selectedWord();
     if (!word) return;

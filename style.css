@@ -1638,6 +1638,12 @@ body.modal-open {
   animation: live-glow 2.4s ease-in-out infinite;
 }
 
+.live-badge.is-web {
+  border-color: rgba(45, 212, 191, 0.34);
+  background: rgba(45, 212, 191, 0.09);
+  color: #99f6e4;
+}
+
 .live-source {
   color: var(--faint);
   font-size: 0.58rem;

@@ -14,7 +14,7 @@ A production-ready, browser-native vocabulary studio for ESL learners, built aro
   - Science & Tech — 125 words
   - Culture — 125 words
 - **Six newsroom learning desks** for every word:
-  1. **Anchor Read-Aloud** — read a live or template headline; native speech recognition scores the target word.
+  1. **Anchor Read-Aloud** — read a live VOA headline or a refreshed dictionary/Wikipedia example; native speech recognition scores the target word.
   2. **Newsroom Listening Desk** — native text-to-speech at 0.5×, 0.8×, or 1.0×; type the word you hear.
   3. **Copy Editor Challenge** — choose or type the missing word in a headline.
   4. **Speed Match Ticker** — 60 seconds, five words and five definitions per board.
@@ -54,6 +54,10 @@ https://api.rss2json.com/v1/api.json?rss_url=https://learningenglish.voanews.com
 ```
 
 The feed is cached for 15 minutes in `sessionStorage`. When a target word appears in a headline or snippet, the studio shows a glowing live badge, highlights the word, and links to the original VOA story. If the feed is unavailable or no match exists, the embedded journalistic headline template is used instead. The ticker has a manual refresh control.
+
+The **Anchor Read-Aloud** desk has its own **🔄 New sentence** button. It cycles through live VOA matches, then fetches additional examples from the [Free Dictionary API](https://dictionaryapi.dev/), [Wiktionary](https://en.wiktionary.org/), and [Wikipedia](https://www.wikipedia.org/), with the four built-in newsroom examples as an offline fallback.
+
+![Anchor Read-Aloud with a refreshed web example](screenshot-read.png)
 
 ## Progress files
 
@@ -101,7 +105,7 @@ Firefox does not expose speech recognition. The read-aloud desk detects this and
 
 - No analytics, tracking, cookies, or accounts.
 - Progress stays in `localStorage` and in files you explicitly export.
-- The only network request is the public VOA RSS feed via rss2json.
+- Network requests are limited to the public VOA RSS feed via rss2json, plus optional read-aloud example lookups on `api.dictionaryapi.dev`, `en.wiktionary.org`, and `en.wikipedia.org`.
 - Speech is handled by the browser's native speech APIs; the app does not record or upload audio.
 
 ## Project structure
@@ -114,6 +118,7 @@ voa-newsroom-esl-studio/
 ├── favicon.svg
 ├── screenshot.png
 ├── screenshot-mobile.png
+├── screenshot-read.png
 ├── README.md
 ├── LICENSE
 ├── STATE.md
@@ -125,7 +130,7 @@ voa-newsroom-esl-studio/
 
 Built with [OpenCode](https://opencode.ai) and **DeepSeek V4.1 Flash** (`opencode-go/deepseek-v4.1-flash`).
 
-Live headlines are provided by [VOA Learning English](https://learningenglish.voanews.com/) through the public RSS feed and the [rss2json](https://rss2json.com/) client endpoint. VOA is the Voice of America; this is an independent learning project and is not an official VOA product.
+Live headlines are provided by [VOA Learning English](https://learningenglish.voanews.com/) through the public RSS feed and the [rss2json](https://rss2json.com/) client endpoint. Optional example lookups use the [Free Dictionary API](https://dictionaryapi.dev/), [Wiktionary](https://en.wiktionary.org/), and [Wikipedia](https://www.wikipedia.org/). VOA is the Voice of America; this is an independent learning project and is not an official VOA product.
 
 ## License
 
