@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0a1020">
-  <meta name="description" content="VOA Newsroom: 500 Words ESL Studio — a browser-native newsroom vocabulary trainer with spaced repetition, live VOA headlines, speech practice, and five learning activities.">
+  <meta name="description" content="VOA Newsroom: 500 Words ESL Studio — a browser-native newsroom vocabulary trainer with spaced repetition, live VOA headlines, speech practice, example sentences, adjustable text size, and six learning desks.">
   <meta property="og:title" content="VOA Newsroom — 500 Words ESL Studio">
-  <meta property="og:description" content="A newsroom-themed ESL vocabulary studio with 500 words, SRS, live VOA headlines, speech practice, and five learning desks.">
+  <meta property="og:description" content="A newsroom-themed ESL vocabulary studio with 500 words, SRS, live VOA headlines, speech practice, example sentences, adjustable text size, and six learning desks.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="screenshot.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -50,6 +50,11 @@
           <span class="btn-label btn-label-short">Load</span>
         </button>
         <input id="loadInput" type="file" accept=".txt,.json,text/plain,application/json" hidden>
+        <div class="font-control" role="group" aria-label="Text size">
+          <button class="font-btn" id="fontDown" type="button" aria-label="Decrease text size" title="Decrease text size">A−</button>
+          <span class="font-label" id="fontLabel" aria-live="polite">100%</span>
+          <button class="font-btn" id="fontUp" type="button" aria-label="Increase text size" title="Increase text size">A+</button>
+        </div>
         <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch color theme" title="Switch color theme">
           <span aria-hidden="true">◐</span>
         </button>
@@ -156,7 +161,7 @@
 
         <div class="rail-tip">
           <p class="rail-heading">Studio note</p>
-          <p>Pick a word, then rotate through all five desks. The SRS clock only moves when you file a correct story.</p>
+          <p>Pick a word, then rotate through all six desks. The SRS clock only moves when you file a correct story.</p>
         </div>
 
         <div class="rail-footer">
@@ -221,7 +226,7 @@
           <div class="studio-empty-mark" aria-hidden="true">📰</div>
           <p class="eyebrow">THE WORD STUDIO</p>
           <h2>Your next story starts with one word.</h2>
-          <p>Select any card to open five newsroom activities: read-aloud, listening, copy editing, speed match, and syllable lab.</p>
+          <p>Select any card to open six newsroom activities: read-aloud, listening, copy editing, speed match, syllable lab, and sentence practice.</p>
           <div class="studio-empty-chips">
             <span>🎤 Speak</span><span>🎧 Listen</span><span>✏️ Edit</span><span>⚡ Match</span><span>🔤 Syllables</span>
           </div>
@@ -246,6 +251,15 @@
             <div><span class="srs-label">Next due</span><strong id="srsDue">Now</strong></div>
           </div>
 
+          <div class="studio-example">
+            <div class="studio-example-head">
+              <span class="srs-label">Example sentence</span>
+              <button class="link-btn" id="studioExampleRefresh" type="button">🔄 Refresh</button>
+            </div>
+            <p id="studioExampleText"></p>
+            <button class="link-btn" id="studioExamplePractice" type="button">Practice this sentence →</button>
+          </div>
+
           <div class="activity-tabs" role="tablist" aria-label="Word activities">
             <button class="activity-tab is-active" type="button" role="tab" aria-selected="true" data-activity="read" title="Anchor Read-Aloud">
               <span aria-hidden="true">🎤</span><span>Read</span>
@@ -261,6 +275,9 @@
             </button>
             <button class="activity-tab" type="button" role="tab" aria-selected="false" data-activity="syllable" title="Syllable & Phonetic Explorer">
               <span aria-hidden="true">🔤</span><span>Syllables</span>
+            </button>
+            <button class="activity-tab" type="button" role="tab" aria-selected="false" data-activity="sentence" title="Sentence Practice">
+              <span aria-hidden="true">💬</span><span>Sentence</span>
             </button>
           </div>
 
@@ -370,6 +387,32 @@
                 <button class="btn btn-outline" id="syllableSlow" type="button">🐢 Slow stress coach</button>
               </div>
               <div class="feedback" id="syllableFeedback" hidden></div>
+            </section>
+
+            <section class="activity-panel" id="panel-sentence" role="tabpanel" aria-label="Sentence Practice" hidden>
+              <div class="panel-kicker"><span>DESK 06</span> Sentence Practice</div>
+              <p class="panel-tip">Read the example, listen to it, or fill in the missing word. Refresh for another sentence.</p>
+              <div class="sentence-card">
+                <div class="sentence-card-top">
+                  <span class="sentence-badge" id="sentenceBadge">EXAMPLE 1 OF 4</span>
+                  <button class="link-btn" id="sentenceRefreshBtn" type="button">🔄 New sentence</button>
+                </div>
+                <p class="sentence-text" id="sentenceText"></p>
+                <p class="sentence-source" id="sentenceSource">VOA Newsroom · example sentence</p>
+              </div>
+              <div class="button-row">
+                <button class="btn btn-outline" id="sentencePlayBtn" type="button">🔊 Listen to sentence</button>
+                <button class="btn btn-primary" id="sentencePracticeBtn" type="button">✏️ Fill the blank</button>
+              </div>
+              <div class="sentence-practice" id="sentencePractice" hidden>
+                <p class="sentence-blank" id="sentenceBlank"></p>
+                <div class="input-row">
+                  <input class="text-input" id="sentenceInput" type="text" placeholder="Type the missing word…" autocomplete="off" autocapitalize="off" spellcheck="false">
+                  <button class="btn btn-primary" id="sentenceCheckBtn" type="button">Check</button>
+                </div>
+                <div class="feedback" id="sentenceFeedback" hidden></div>
+              </div>
+              <p class="status-line" id="sentenceStatus">Pick a sentence, then listen or fill in the missing word.</p>
             </section>
           </div>
         </div>

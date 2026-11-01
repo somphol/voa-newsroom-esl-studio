@@ -533,6 +533,10 @@ const CATEGORY_META = {
       "Global Update: Officials respond as '{word}' draws attention.",
       "Diplomatic Desk: Why '{word}' is shaping the conversation this week.",
     ],
+    examples: [
+      "Diplomats said {word} would dominate the next round of talks.",
+      "The world desk is following how {word} affects communities.",
+    ],
   },
   BE: {
     label: "Business & Economy",
@@ -544,6 +548,10 @@ const CATEGORY_META = {
       "Economy Desk: Why '{word}' is on every analyst's radar.",
       "Business Brief: '{word}' takes center stage in a fast-moving market.",
       "Global Trade: What '{word}' means for workers and consumers.",
+    ],
+    examples: [
+      "Markets reacted as {word} shaped the economic outlook.",
+      "The business desk is following how {word} affects companies and consumers.",
     ],
   },
   ST: {
@@ -557,6 +565,10 @@ const CATEGORY_META = {
       "Tech Watch: '{word}' moves from the lab to the real world.",
       "Innovation Brief: The promise and risk of '{word}'.",
     ],
+    examples: [
+      "Researchers say {word} could change how we live and work.",
+      "The science desk is following how {word} moves from the lab to the real world.",
+    ],
   },
   CU: {
     label: "Culture",
@@ -569,6 +581,10 @@ const CATEGORY_META = {
       "Culture Brief: '{word}' takes center stage in a changing world.",
       "From the Archive: How '{word}' became part of everyday life.",
     ],
+    examples: [
+      "The story explores how {word} shapes everyday life.",
+      "The culture desk put {word} at the center of the conversation.",
+    ],
   },
 };
 
@@ -579,9 +595,21 @@ const RANKS = [
   { name: "Anchor", min: 250, icon: "🌟", next: null, nextAt: null },
 ];
 
+function lowerFirstWord(text) {
+  return /^[A-Z]{2,}/.test(text) ? text : text.charAt(0).toLowerCase() + text.slice(1);
+}
+
 const WORDS = RAW_WORDS.map((row, index) => {
   const meta = CATEGORY_META[row[1]];
   const word = row[0];
+  const definition = row[4];
+  const headline = meta.templates[index % meta.templates.length].replace(/\{word\}/g, word);
+  const definitionExample = `In this lesson, ${word} means ${lowerFirstWord(definition.replace(/\.$/, ""))}.`;
+  const examples = [
+    ...meta.examples.map((template) => template.replace(/\{word\}/g, word)),
+    definitionExample,
+    headline,
+  ];
   return {
     id: index + 1,
     word,
@@ -591,9 +619,10 @@ const WORDS = RAW_WORDS.map((row, index) => {
     color: meta.color,
     ipa: row[2],
     syllables: row[3].split("|").filter(Boolean),
-    definition: row[4],
-    headline: meta.templates[index % meta.templates.length].replace(/\{word\}/g, word),
-    search: `${word} ${row[4]} ${meta.label}`.toLowerCase(),
+    definition,
+    headline,
+    examples,
+    search: `${word} ${definition} ${meta.label}`.toLowerCase(),
   };
 });
 
@@ -631,7 +660,7 @@ function makeState(saved) {
     words: {},
     streak: { count: 0, best: 0, lastDate: null, history: [] },
     stats: { attempts: 0, correct: 0 },
-    settings: { theme: "dark" },
+    settings: { theme: "dark", fontScale: 1 },
   };
 
   WORDS.forEach((word) => {
@@ -691,6 +720,9 @@ function makeState(saved) {
     if (saved.settings && ["dark", "light"].includes(saved.settings.theme)) {
       next.settings.theme = saved.settings.theme;
     }
+    if (saved.settings && Number.isFinite(Number(saved.settings.fontScale))) {
+      next.settings.fontScale = Math.min(1.4, Math.max(0.8, Number(saved.settings.fontScale)));
+    }
   }
 
   return next;
@@ -728,6 +760,9 @@ const els = {
   loadBtn: $("loadBtn"),
   loadInput: $("loadInput"),
   themeBtn: $("themeBtn"),
+  fontDown: $("fontDown"),
+  fontUp: $("fontUp"),
+  fontLabel: $("fontLabel"),
 
   rankIcon: $("rankIcon"),
   rankName: $("rankName"),
@@ -780,6 +815,9 @@ const els = {
   srsReviewCount: $("srsReviewCount"),
   srsLevel: $("srsLevel"),
   srsDue: $("srsDue"),
+  studioExampleText: $("studioExampleText"),
+  studioExampleRefresh: $("studioExampleRefresh"),
+  studioExamplePractice: $("studioExamplePractice"),
   closeStudio: $("closeStudio"),
 
   readLiveCard: $("readLiveCard"),
@@ -827,6 +865,19 @@ const els = {
   syllableSlow: $("syllableSlow"),
   syllableFeedback: $("syllableFeedback"),
 
+  sentenceBadge: $("sentenceBadge"),
+  sentenceText: $("sentenceText"),
+  sentenceSource: $("sentenceSource"),
+  sentenceRefreshBtn: $("sentenceRefreshBtn"),
+  sentencePlayBtn: $("sentencePlayBtn"),
+  sentencePracticeBtn: $("sentencePracticeBtn"),
+  sentencePractice: $("sentencePractice"),
+  sentenceBlank: $("sentenceBlank"),
+  sentenceInput: $("sentenceInput"),
+  sentenceCheckBtn: $("sentenceCheckBtn"),
+  sentenceFeedback: $("sentenceFeedback"),
+  sentenceStatus: $("sentenceStatus"),
+
   toast: $("toast"),
   resetAllBtn: $("resetAllBtn"),
 };
@@ -838,6 +889,7 @@ const activityPanels = {
   editor: $("panel-editor"),
   match: $("panel-match"),
   syllable: $("panel-syllable"),
+  sentence: $("panel-sentence"),
 };
 const categoryTabs = Array.from(document.querySelectorAll(".cat-tab"));
 const railViewLinks = Array.from(document.querySelectorAll(".rail-link[data-view]"));
@@ -868,6 +920,10 @@ const ui = {
   editorWordId: null,
   editorAttempts: 0,
   editorOptions: [],
+  sentenceIndex: 0,
+  sentenceWordId: null,
+  sentenceSolved: false,
+  sentenceAttempts: 0,
   readEvaluated: false,
   readSolved: false,
   recognizing: false,
@@ -1393,6 +1449,7 @@ function renderStudioMeta() {
   els.srsReviewCount.textContent = String(wordState.reviewCount);
   els.srsLevel.textContent = levelLabel(wordState);
   els.srsDue.textContent = dueLabel(wordState);
+  renderStudioExample();
 }
 
 function renderStudio() {
@@ -1445,6 +1502,10 @@ function selectWord(wordId) {
   ui.editorSolved = false;
   ui.editorWordId = null;
   ui.editorAttempts = 0;
+  ui.sentenceIndex = 0;
+  ui.sentenceWordId = null;
+  ui.sentenceSolved = false;
+  ui.sentenceAttempts = 0;
   ui.match.wordId = null;
 
   resetReadUI();
@@ -1523,6 +1584,7 @@ function renderActivityPanel(activity) {
   if (activity === "editor") renderEditorPanel();
   if (activity === "match") renderMatchPanel();
   if (activity === "syllable") renderSyllablePanel();
+  if (activity === "sentence") renderSentencePanel();
 }
 
 /* --------------------------------------------------------------------------
@@ -2438,6 +2500,153 @@ async function playAllSyllables(slow = false) {
 }
 
 /* --------------------------------------------------------------------------
+   Desk 06 — Sentence Practice
+   -------------------------------------------------------------------------- */
+
+function currentSentence() {
+  const word = selectedWord();
+  if (!word || !word.examples.length) return "";
+  return word.examples[ui.sentenceIndex % word.examples.length];
+}
+
+function renderStudioExample() {
+  const word = selectedWord();
+  if (!word) return;
+  if (ui.sentenceWordId !== word.id) {
+    ui.sentenceWordId = word.id;
+    ui.sentenceIndex = 0;
+    ui.sentenceSolved = false;
+    ui.sentenceAttempts = 0;
+  }
+  const sentence = currentSentence();
+  els.studioExampleText.innerHTML = highlightWord(sentence, word.word);
+}
+
+function renderSentenceCard() {
+  const word = selectedWord();
+  if (!word) return;
+  const sentence = currentSentence();
+  const index = ui.sentenceIndex % word.examples.length;
+  const contextCount = word.examples.length - 2;
+  els.sentenceBadge.textContent = `EXAMPLE ${index + 1} OF ${word.examples.length}`;
+  els.sentenceText.innerHTML = highlightWord(sentence, word.word);
+  els.sentenceSource.textContent =
+    index < contextCount
+      ? "VOA Newsroom · context example"
+      : index === contextCount
+        ? "VOA Newsroom · definition example"
+        : "VOA Newsroom · headline example";
+  renderStudioExample();
+}
+
+function resetSentencePractice() {
+  els.sentencePractice.hidden = true;
+  els.sentenceInput.value = "";
+  els.sentenceInput.disabled = false;
+  els.sentenceCheckBtn.disabled = false;
+  els.sentenceFeedback.hidden = true;
+  els.sentenceStatus.textContent = "Pick a sentence, then listen or fill in the missing word.";
+  els.sentenceStatus.className = "status-line";
+}
+
+function renderSentencePanel() {
+  const word = selectedWord();
+  if (!word) return;
+  if (ui.sentenceWordId !== word.id) {
+    ui.sentenceWordId = word.id;
+    ui.sentenceIndex = 0;
+    ui.sentenceSolved = false;
+    ui.sentenceAttempts = 0;
+    resetSentencePractice();
+  }
+  renderSentenceCard();
+}
+
+function refreshSentence() {
+  const word = selectedWord();
+  if (!word) return;
+  ui.sentenceIndex = (ui.sentenceIndex + 1) % word.examples.length;
+  ui.sentenceAttempts = 0;
+  resetSentencePractice();
+  renderSentenceCard();
+  els.sentenceStatus.textContent = "New example loaded. Listen closely, then try the blank.";
+}
+
+function openSentencePractice() {
+  const word = selectedWord();
+  if (!word) return;
+  const sentence = currentSentence();
+  els.sentencePractice.hidden = false;
+  els.sentenceBlank.innerHTML = blankHeadline(sentence, word.word);
+  els.sentenceInput.value = "";
+  els.sentenceInput.disabled = ui.sentenceSolved;
+  els.sentenceCheckBtn.disabled = ui.sentenceSolved;
+  els.sentenceFeedback.hidden = !ui.sentenceSolved;
+  if (ui.sentenceSolved) {
+    els.sentenceFeedback.className = "feedback is-correct";
+    els.sentenceFeedback.textContent = "This sentence is already filed. Refresh for another example.";
+  }
+  setTimeout(() => {
+    if (!ui.sentenceSolved) els.sentenceInput.focus();
+  }, 30);
+}
+
+function checkSentenceAnswer() {
+  const word = selectedWord();
+  if (!word || !currentSentence()) return;
+  if (ui.sentenceSolved) {
+    els.sentenceFeedback.hidden = false;
+    els.sentenceFeedback.className = "feedback";
+    els.sentenceFeedback.textContent = "Already filed — refresh for a fresh sentence.";
+    return;
+  }
+  const guess = normalize(els.sentenceInput.value);
+  if (!guess) {
+    els.sentenceFeedback.hidden = false;
+    els.sentenceFeedback.className = "feedback is-wrong";
+    els.sentenceFeedback.textContent = "Type the missing word first.";
+    return;
+  }
+  if (guess === normalize(word.word)) {
+    ui.sentenceSolved = true;
+    els.sentencePractice.hidden = false;
+    els.sentenceBlank.innerHTML = blankHeadline(currentSentence(), word.word);
+    const blank = els.sentenceBlank.querySelector(".blank");
+    if (blank) blank.outerHTML = `<mark>${escapeHtml(word.word)}</mark>`;
+    els.sentenceInput.disabled = true;
+    els.sentenceCheckBtn.disabled = true;
+    els.sentenceFeedback.hidden = false;
+    els.sentenceFeedback.className = "feedback is-correct";
+    els.sentenceFeedback.textContent = `Filed. “${word.word}” completes the sentence. SRS timestamp updated.`;
+    els.sentenceStatus.textContent = "Sentence filed. Refresh for another example or return to the word desk.";
+    els.sentenceStatus.className = "status-line is-success";
+    completeWord(word.id, "sentence", true);
+    return;
+  }
+
+  ui.sentenceAttempts += 1;
+  els.sentenceFeedback.hidden = false;
+  els.sentenceFeedback.className = "feedback is-wrong";
+  els.sentenceFeedback.textContent =
+    ui.sentenceAttempts >= 2
+      ? `Not quite. Hint: ${word.definition}`
+      : "That word does not fit. Read the sentence again and try once more.";
+  els.sentenceStatus.textContent = "Keep going — the sentence is still waiting for its missing word.";
+  els.sentenceStatus.className = "status-line is-error";
+  recordMiss(word.id);
+}
+
+function playSentence() {
+  const word = selectedWord();
+  if (!word) return;
+  const sentence = currentSentence();
+  touchWord(word.id);
+  els.sentenceStatus.textContent = "Playing the sentence at a study pace.";
+  els.sentenceStatus.className = "status-line";
+  speakText(sentence.replace(/[“”"']/g, ""), 0.85);
+}
+
+/* --------------------------------------------------------------------------
    Progress export / import
    -------------------------------------------------------------------------- */
 
@@ -2500,6 +2709,7 @@ async function importProgressFile(file) {
     state.updatedAt = new Date().toISOString();
     saveState();
     applyTheme(state.settings.theme);
+    applyFontScale(state.settings.fontScale || 1);
     renderHUD();
     renderRailCounts();
     updateViewLabels();
@@ -2525,6 +2735,7 @@ function resetAllProgress() {
   }
   state = makeState(null);
   applyTheme(state.settings.theme);
+  applyFontScale(state.settings.fontScale || 1);
   ui.selectedId = null;
   els.studioEmpty.hidden = false;
   els.studioBody.hidden = true;
@@ -2554,6 +2765,24 @@ function toggleTheme() {
   saveState();
 }
 
+function clampFontScale(value) {
+  return Math.min(1.4, Math.max(0.8, Math.round(Number(value) * 100) / 100));
+}
+
+function applyFontScale(scale) {
+  const next = clampFontScale(Number.isFinite(Number(scale)) ? scale : 1);
+  state.settings.fontScale = next;
+  document.documentElement.style.setProperty("--font-scale", String(next));
+  els.fontLabel.textContent = `${Math.round(next * 100)}%`;
+  els.fontDown.disabled = next <= 0.8;
+  els.fontUp.disabled = next >= 1.4;
+}
+
+function changeFontScale(delta) {
+  applyFontScale((state.settings.fontScale || 1) + delta);
+  saveState();
+}
+
 function showToast(message, type = "info", duration = 3200) {
   if (!els.toast) return;
   clearTimeout(ui.toastTimer);
@@ -2576,6 +2805,8 @@ function wireEvents() {
     importProgressFile(event.target.files?.[0]);
   });
   els.themeBtn.addEventListener("click", toggleTheme);
+  els.fontDown.addEventListener("click", () => changeFontScale(-0.1));
+  els.fontUp.addEventListener("click", () => changeFontScale(0.1));
   els.feedRefreshBtn.addEventListener("click", () => loadFeed(true));
   els.resetAllBtn.addEventListener("click", resetAllProgress);
 
@@ -2681,6 +2912,19 @@ function wireEvents() {
   els.syllablePlayAll.addEventListener("click", () => playAllSyllables(false));
   els.syllableSlow.addEventListener("click", () => playAllSyllables(true));
 
+  els.sentenceRefreshBtn.addEventListener("click", refreshSentence);
+  els.studioExampleRefresh.addEventListener("click", refreshSentence);
+  els.studioExamplePractice.addEventListener("click", () => {
+    setActivity("sentence");
+    openSentencePractice();
+  });
+  els.sentencePlayBtn.addEventListener("click", playSentence);
+  els.sentencePracticeBtn.addEventListener("click", openSentencePractice);
+  els.sentenceCheckBtn.addEventListener("click", checkSentenceAnswer);
+  els.sentenceInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") checkSentenceAnswer();
+  });
+
   document.addEventListener("keydown", (event) => {
     if (event.key === "Tab" && els.studioPanel.classList.contains("is-open")) {
       trapStudioFocus(event);
@@ -2709,6 +2953,7 @@ function wireEvents() {
     try {
       state = makeState(JSON.parse(event.newValue));
       applyTheme(state.settings.theme);
+      applyFontScale(state.settings.fontScale || 1);
       renderHUD();
       renderRailCounts();
       renderGrid();
@@ -2725,6 +2970,7 @@ function wireEvents() {
 
 function init() {
   applyTheme(state.settings.theme);
+  applyFontScale(state.settings.fontScale || 1);
   wireEvents();
   renderHUD();
   renderRailCounts();

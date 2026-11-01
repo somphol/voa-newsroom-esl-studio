@@ -13,12 +13,15 @@ A production-ready, browser-native vocabulary studio for ESL learners, built aro
   - Business & Economy — 125 words
   - Science & Tech — 125 words
   - Culture — 125 words
-- **Five newsroom learning desks** for every word:
+- **Six newsroom learning desks** for every word:
   1. **Anchor Read-Aloud** — read a live or template headline; native speech recognition scores the target word.
   2. **Newsroom Listening Desk** — native text-to-speech at 0.5×, 0.8×, or 1.0×; type the word you hear.
   3. **Copy Editor Challenge** — choose or type the missing word in a headline.
   4. **Speed Match Ticker** — 60 seconds, five words and five definitions per board.
   5. **Syllable & Phonetic Explorer** — tap syllable chunks, hear each one, and practise the stress pattern.
+  6. **Sentence Practice** — four example sentences per word, a refresh button, sentence audio, and a fill-in-the-blank check.
+- **Adjustable text size** — 80% to 140% with a persistent setting for comfortable reading.
+- **Example sentence bank** — each word has four examples: a definition sentence, two newsroom context sentences, and its headline. Refresh cycles through them.
 - **Spaced Repetition System (SRS)** with real timestamp math, a due-today queue, review counts, and expanding intervals.
 - **Live VOA Learning English headlines** via the RSS-to-JSON endpoint, with a glowing **🔴 LIVE VOA NEWS** badge when a target word appears in a current headline or snippet.
 - **Portable progress files** — download `voa_learning_progress.txt` and restore it on any browser or device.
@@ -55,7 +58,7 @@ The feed is cached for 15 minutes in `sessionStorage`. When a target word appear
 ## Progress files
 
 - **💾 Save Progress File** serializes the full state and downloads `voa_learning_progress.txt`.
-- **📂 Load Progress File** accepts that text file (or a JSON export) and restores word records, streak, stats, and theme.
+- **📂 Load Progress File** accepts that text file (or a JSON export) and restores word records, streak, stats, theme, and text size.
 - Active progress is also saved automatically to `localStorage` after every review or interaction.
 
 The file is JSON with a `.txt` extension so it is easy to email, store, or move between devices. Nothing is uploaded anywhere.
@@ -105,7 +108,7 @@ Firefox does not expose speech recognition. The read-aloud desk detects this and
 
 ```text
 voa-newsroom-esl-studio/
-├── index.html      # Semantic newsroom shell and five activity panels
+├── index.html      # Semantic newsroom shell and six activity panels
 ├── style.css       # Navy/slate glass design system and responsive layout
 ├── script.js       # 500-word library, SRS engine, RSS, speech, activities
 ├── favicon.svg

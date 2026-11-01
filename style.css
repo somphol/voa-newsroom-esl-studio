@@ -33,6 +33,7 @@
   --radius-sm: 12px;
   --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-scale: 1;
   --topbar-height: 76px;
 }
 
@@ -64,6 +65,7 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: calc(100% * var(--font-scale, 1));
 }
 
 body {
@@ -261,6 +263,51 @@ a:hover {
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.font-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  height: 42px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgba(148, 163, 184, 0.06);
+}
+
+.font-btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.font-btn:hover {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text);
+}
+
+.font-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.font-label {
+  min-width: 42px;
+  color: var(--faint);
+  font-size: 0.64rem;
+  font-weight: 750;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 /* --------------------------------------------------------------------------
@@ -1252,12 +1299,12 @@ body.modal-open {
 }
 
 .activity-tabs {
-  grid-row: 5;
+  grid-row: 6;
 }
 
 .activity-panels {
   grid-column: 2;
-  grid-row: 1 / span 5;
+  grid-row: 1 / span 6;
   min-width: 0;
   padding-top: 0;
 }
@@ -1330,6 +1377,38 @@ body.modal-open {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.studio-example {
+  grid-column: 1;
+  grid-row: 5;
+  margin-top: 14px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(148, 163, 184, 0.045);
+}
+
+.studio-example-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.studio-example-head .link-btn {
+  margin-top: 0;
+}
+
+.studio-example p {
+  margin: 5px 0 0;
+  color: var(--text-soft);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.studio-example .link-btn {
+  margin-top: 5px;
 }
 
 .srs-strip {
@@ -2101,6 +2180,85 @@ body.modal-open {
   text-transform: uppercase;
 }
 
+/* Sentence practice */
+
+.sentence-card {
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(244, 185, 66, 0.08), transparent 16rem),
+    rgba(148, 163, 184, 0.04);
+}
+
+.sentence-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.sentence-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 7px;
+  border: 1px solid rgba(244, 185, 66, 0.28);
+  border-radius: 999px;
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sentence-card-top .link-btn {
+  margin-top: 0;
+}
+
+.sentence-text {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+.sentence-text mark {
+  padding: 0 3px;
+  border-radius: 3px;
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.sentence-source {
+  margin: 9px 0 0;
+  color: var(--faint);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.sentence-practice {
+  margin-top: 11px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(148, 163, 184, 0.045);
+}
+
+.sentence-blank {
+  margin: 0 0 9px;
+  font-family: var(--font-serif);
+  font-size: 1.08rem;
+  line-height: 1.5;
+}
+
+.sentence-blank .blank {
+  min-width: 90px;
+}
+
 /* --------------------------------------------------------------------------
    Footer, toast, misc
    -------------------------------------------------------------------------- */
@@ -2336,7 +2494,7 @@ body.modal-open {
   }
   .activity-tabs {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 3px;
     margin-top: 10px;
   }
@@ -2383,11 +2541,17 @@ body.modal-open {
   }
   .topbar-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr auto;
+    grid-template-columns: 1fr 1fr;
   }
   .due-trigger {
     grid-column: 1 / -1;
     justify-content: center;
+  }
+  .font-control {
+    justify-self: start;
+  }
+  #themeBtn {
+    justify-self: start;
   }
   .hud {
     grid-template-columns: 1fr;
