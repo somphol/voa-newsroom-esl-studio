@@ -769,6 +769,7 @@ const els = {
   loadMoreBtn: $("loadMoreBtn"),
 
   studioPanel: $("studioPanel"),
+  studioBackdrop: $("studioBackdrop"),
   studioEmpty: $("studioEmpty"),
   studioBody: $("studioBody"),
   studioStatus: $("studioStatus"),
@@ -888,6 +889,7 @@ const ui = {
   toastTimer: null,
   searchTimer: null,
   speechToken: 0,
+  lastFocused: null,
 };
 
 /* --------------------------------------------------------------------------
@@ -1407,6 +1409,24 @@ function renderStudio() {
   renderActivityPanel(ui.activity);
 }
 
+function openStudioModal() {
+  ui.lastFocused = document.activeElement;
+  els.studioPanel.classList.add("is-open");
+  els.studioPanel.setAttribute("aria-hidden", "false");
+  els.studioBackdrop.classList.add("is-open");
+  document.body.classList.add("modal-open");
+  setTimeout(() => {
+    if (els.studioPanel.classList.contains("is-open")) els.closeStudio.focus();
+  }, 40);
+}
+
+function closeStudioModal() {
+  els.studioPanel.classList.remove("is-open");
+  els.studioPanel.setAttribute("aria-hidden", "true");
+  els.studioBackdrop.classList.remove("is-open");
+  document.body.classList.remove("modal-open");
+}
+
 function selectWord(wordId) {
   const word = WORD_BY_ID.get(wordId);
   if (!word) return;
@@ -1430,15 +1450,11 @@ function selectWord(wordId) {
   resetReadUI();
   renderGrid();
   renderStudio();
-
-  if (window.innerWidth < 1180) {
-    setTimeout(() => {
-      els.studioPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 60);
-  }
+  openStudioModal();
 }
 
 function closeStudio() {
+  const returnId = ui.selectedId;
   stopRecognition();
   stopSpeech();
   stopMatch();
@@ -1446,6 +1462,36 @@ function closeStudio() {
   els.studioEmpty.hidden = false;
   els.studioBody.hidden = true;
   renderGrid();
+  closeStudioModal();
+  setTimeout(() => {
+    const card = els.wordGrid.querySelector(`.word-card[data-word-id="${returnId}"]`);
+    if (card) {
+      card.focus();
+    } else if (ui.lastFocused && document.contains(ui.lastFocused)) {
+      ui.lastFocused.focus();
+    } else {
+      els.searchInput.focus();
+    }
+    ui.lastFocused = null;
+  }, 30);
+}
+
+function trapStudioFocus(event) {
+  const focusables = Array.from(
+    els.studioPanel.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ),
+  ).filter((element) => !element.hidden && element.offsetParent !== null);
+  if (!focusables.length) return;
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
 }
 
 function setActivity(activity) {
@@ -2482,6 +2528,7 @@ function resetAllProgress() {
   ui.selectedId = null;
   els.studioEmpty.hidden = false;
   els.studioBody.hidden = true;
+  closeStudioModal();
   renderHUD();
   renderRailCounts();
   updateViewLabels();
@@ -2568,6 +2615,7 @@ function wireEvents() {
   });
 
   els.closeStudio.addEventListener("click", closeStudio);
+  els.studioBackdrop.addEventListener("click", closeStudio);
 
   activityTabs.forEach((tab) => {
     tab.addEventListener("click", () => setActivity(tab.dataset.activity));
@@ -2634,6 +2682,9 @@ function wireEvents() {
   els.syllableSlow.addEventListener("click", () => playAllSyllables(true));
 
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Tab" && els.studioPanel.classList.contains("is-open")) {
+      trapStudioFocus(event);
+    }
     if (event.key === "Escape") {
       if (ui.recognizing) {
         stopRecognition();

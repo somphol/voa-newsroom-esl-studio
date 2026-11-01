@@ -216,7 +216,7 @@
         </div>
       </section>
 
-      <aside class="studio" id="studioPanel" aria-label="Word studio" aria-live="polite">
+      <aside class="studio" id="studioPanel" role="dialog" aria-modal="true" aria-labelledby="studioWord" aria-hidden="true" tabindex="-1" aria-label="Word studio">
         <div class="studio-empty" id="studioEmpty">
           <div class="studio-empty-mark" aria-hidden="true">📰</div>
           <p class="eyebrow">THE WORD STUDIO</p>
@@ -375,6 +375,8 @@
         </div>
       </aside>
     </main>
+
+    <div class="studio-backdrop" id="studioBackdrop" aria-hidden="true"></div>
 
     <footer class="site-footer">
       <div>

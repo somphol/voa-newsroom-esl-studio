@@ -13,20 +13,20 @@
   ],
   "build": {
     "startedAt": "2026-10-31T23:15:39.471Z",
-    "completedAt": "2026-10-31T23:52:14.000Z",
-    "durationSeconds": 2194.5,
-    "durationHuman": "36m 35s",
+    "completedAt": "2026-11-01T00:07:30.000Z",
+    "durationSeconds": 3110.5,
+    "durationHuman": "51m 51s",
     "timezone": "UTC",
     "note": "Elapsed time from the OpenCode session creation to the token snapshot used for this state file. The final commit/push and closing response occur outside the snapshot."
   },
   "tokens": {
-    "input": 42824,
-    "output": 77326,
-    "reasoning": 68297,
-    "cacheRead": 14412416,
+    "input": 63905,
+    "output": 92231,
+    "reasoning": 86563,
+    "cacheRead": 27004800,
     "cacheWrite": 1645,
-    "total": 188447,
-    "totalWithCache": 14602508,
+    "total": 242699,
+    "totalWithCache": 27249144,
     "note": "Snapshot from the OpenCode session record when the project was packaged. total = input + output + reasoning. Cache reads/writes are reported separately because they are a subset of context usage."
   },
   "cost": {
@@ -68,16 +68,16 @@
     },
     "files": {
       "index.html": {
-        "bytes": 22140,
-        "lines": 399
+        "bytes": 22295,
+        "lines": 401
       },
       "style.css": {
-        "bytes": 45084,
-        "lines": 2279
+        "bytes": 48442,
+        "lines": 2465
       },
       "script.js": {
-        "bytes": 127868,
-        "lines": 2687
+        "bytes": 129670,
+        "lines": 2738
       }
     },
     "singlePage": true,
@@ -91,7 +91,8 @@
     "Live RSS verified against VOA Learning English: live badge, highlighted headline, and original VOA link rendered.",
     "Export verified: voa_learning_progress.txt downloaded with 500 word records and imported successfully.",
     "Responsive checks at 1600px, 1440px, 1024px, and 390px; mobile HUD stacks and studio moves below the content.",
-    "GitHub Pages build completed successfully; index.html, style.css, script.js, and screenshot.png served with HTTP 200."
+    "GitHub Pages build completed successfully; index.html, style.css, script.js, and screenshot.png served with HTTP 200.",
+    "Word studio converted to a large accessible modal (1280px desktop / near-full-screen mobile) with backdrop close, Escape close, focus trap, and focus return."
   ],
   "artifacts": [
     "index.html",

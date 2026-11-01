@@ -4,8 +4,8 @@
 | --- | --- |
 | Project | VOA Newsroom: 500 Words ESL Studio (`voa-newsroom-esl-studio`) |
 | Started | 2026-10-31 23:15:39 UTC |
-| Completed | 2026-10-31 23:52:14 UTC |
-| Duration | **36m 35s** (2,194.5 seconds) |
+| Completed | 2026-11-01 00:07:30 UTC |
+| Duration | **51m 51s** (3,110.5 seconds) |
 | Harness | OpenCode 2.2.5 |
 | Model | DeepSeek V4.1 Flash (`opencode-go/deepseek-v4.1-flash`) |
 | Session | `ses_e6bc0b0c3ffeBbI7KPINLa6RIR` |
@@ -16,19 +16,19 @@
 
 | Metric | Tokens |
 | --- | ---: |
-| Input | 42,824 |
-| Output | 77,326 |
-| Reasoning | 68,297 |
-| **Total (input + output + reasoning)** | **188,447** |
-| Cache read | 14,412,416 |
+| Input | 63,905 |
+| Output | 92,231 |
+| Reasoning | 86,563 |
+| **Total (input + output + reasoning)** | **242,699** |
+| Cache read | 27,004,800 |
 | Cache write | 1,645 |
-| Total including cache | 14,602,508 |
+| Total including cache | 27,249,144 |
 
-> Snapshot taken from the OpenCode session record when the project was packaged at 2026-10-31 23:52:14 UTC. The final commit/push and the closing response occur outside this snapshot, so the live session totals will be marginally higher. `total = input + output + reasoning`; cache reads/writes are reported separately because they are a subset of context usage.
+> Snapshot taken from the OpenCode session record when the project was packaged at 2026-11-01 00:07:30 UTC. The final commit/push and the closing response occur outside this snapshot, so the live session totals will be marginally higher. `total = input + output + reasoning`; cache reads/writes are reported separately because they are a subset of context usage.
 
 ## What was built
 
-- **Three production files**: `index.html` (399 lines), `style.css` (2,279 lines), `script.js` (2,687 lines). No build step, no framework, no backend, no database.
+- **Three production files**: `index.html` (401 lines), `style.css` (2,465 lines), `script.js` (2,738 lines). No build step, no framework, no backend, no database.
 - **500 curated words**, exactly 125 per beat: World Politics, Business & Economy, Science & Tech, and Culture. Every entry has a definition, IPA, visual syllable chunks, and a category headline template.
 - **Five learning desks**:
   - Anchor Read-Aloud with `webkitSpeechRecognition`, transcript feedback, accuracy meter, and SRS update.
@@ -41,6 +41,7 @@
 - **Reporter HUD**: Intern → Field Journalist → Senior Editor → Anchor, mastery out of 500, daily streak, accuracy, and review totals.
 - **Portable progress**: automatic `localStorage` saves, `voa_learning_progress.txt` export, and file import with validation.
 - **Newsroom UI**: navy/slate glassmorphism, VOA red accents, editorial serif headlines, responsive layouts, light/dark themes, reduced-motion support, keyboard navigation, and ARIA labels.
+- **Focused word studio modal**: a 1280px desktop / near-full-screen mobile dialog with a word dossier, vertical activity rail, backdrop and Escape closing, focus trap, and focus return to the originating card.
 
 ## Verification
 
@@ -50,6 +51,7 @@
 - Live RSS returned real VOA Learning English items; a matching word showed the live badge and a valid `learningenglish.voanews.com` link.
 - Export produced `voa_learning_progress.txt` with 500 word records; import restored it successfully.
 - Responsive checks at 1600px, 1440px, 1024px, and 390px.
+- Word studio modal verified at 1280px wide / 640px tall on desktop and 370px wide on mobile, with backdrop close, Escape close, focus trap, and focus return.
 - GitHub Pages build completed and served `index.html`, `style.css`, `script.js`, and `screenshot.png` with HTTP 200.
 
 ## Credits

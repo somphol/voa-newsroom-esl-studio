@@ -22,6 +22,7 @@ A production-ready, browser-native vocabulary studio for ESL learners, built aro
 - **Spaced Repetition System (SRS)** with real timestamp math, a due-today queue, review counts, and expanding intervals.
 - **Live VOA Learning English headlines** via the RSS-to-JSON endpoint, with a glowing **🔴 LIVE VOA NEWS** badge when a target word appears in a current headline or snippet.
 - **Portable progress files** — download `voa_learning_progress.txt` and restore it on any browser or device.
+- **Focused word studio** — clicking any word opens a large, accessible modal with a word dossier and activity desk; close it with the × button, the backdrop, or Escape.
 - **Reporter HUD** — Intern → Field Journalist → Senior Editor → Anchor, mastery progress out of 500, daily streak, and accuracy.
 - **Responsive newsroom UI** — navy/slate glassmorphism, VOA red accents, editorial serif headlines, light/dark themes, reduced-motion support, and keyboard-friendly controls.
 
