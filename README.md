@@ -161,6 +161,11 @@ documentation fixes alike. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and th
 | Document | Purpose |
 | --- | --- |
 | [README.md](README.md) | Overview, setup, controls, and architecture |
+| [AGENTS.md](AGENTS.md) | Handoff for the next maintainer or agent |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | File map, data model, SRS, feed, activities |
+| [docs/REPRODUCTION.md](docs/REPRODUCTION.md) | How to rebuild the project from scratch |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Branch-root Pages hosting, external requests, rollback |
+| [docs/TESTING.md](docs/TESTING.md) | Evidence, headless checks, manual test matrix |
 | [CHANGELOG.md](CHANGELOG.md) | Notable changes and release history |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Local workflow, constraints, and pull request checks |
 | [SECURITY.md](SECURITY.md) | Supported versions and private vulnerability reporting |
